@@ -8,7 +8,7 @@ from simulation import Simulation
 
 TIME_STEP_SECONDS = 1.0 / 60.0
 
-def simulation_loop(sim: Simulation, env: simpy.Environment, tick):
+def simulation_loop(sim: Simulation, env: simpy.Environment, tick: float):
     print("Running simulation")
     prev_scene = None
     while True:
