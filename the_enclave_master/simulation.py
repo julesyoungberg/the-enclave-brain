@@ -2,9 +2,12 @@ from threading import Lock
 
 class Simulation:
     def __init__(self):
-        # @todo set up variables that represent sim
         self.scene = 0
-        self.config = {}
+        self.config = {
+            'polution': 0.0,
+            'deforestation': 0.0,
+            'new_trees': 0.0,
+        }
         self.lock = Lock()
 
     def update_config(self, key: str, value: float):
