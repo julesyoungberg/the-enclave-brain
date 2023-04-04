@@ -2,7 +2,7 @@ from threading import Lock
 
 class Simulation:
     def __init__(self):
-        self.scene = 0
+        self.scene = 'scene1'
         self.config = {
             'polution': 0.0,
             'deforestation': 0.0,
@@ -19,8 +19,8 @@ class Simulation:
     def update(self):
         self.lock.acquire()
         # @todo update simulation by timestep
-        self.scene = 1
+        self.scene = 'scene2'
         self.lock.release()
 
-    def get_scene(self) -> int:
+    def get_scene(self) -> str:
         return self.scene

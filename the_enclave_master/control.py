@@ -11,7 +11,7 @@ CONFIG_MAPPING = {
     2: 'new_trees',
 }
 
-osc_client = SimpleUDPClient("127.0.0.1", 1337)
+osc_client = SimpleUDPClient("127.0.0.1", 8010)
 
 def control_loop(sim: Simulation):
     while True:
@@ -29,6 +29,6 @@ def control_loop(sim: Simulation):
         time.sleep(5)
 
 
-def transmit_scene(scene: int):
+def transmit_scene(scene: str):
     print("Transmitting scene:", scene)
-    osc_client.send_message("/scene", [scene])
+    osc_client.send_message(scene, [1.0])
