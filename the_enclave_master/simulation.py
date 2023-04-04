@@ -19,7 +19,7 @@ class Simulation:
     def update(self):
         self.lock.acquire()
         # @todo update simulation by timestep
-        self.scene = 'scene2'
+        self.scene = 'scene1'
         self.lock.release()
 
     def get_scene(self) -> str:
