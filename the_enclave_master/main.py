@@ -3,10 +3,11 @@ import time
 
 import simpy
 
-from control import control_loop, transmit_scene, send_osc
-from simulation import Simulation
+from .control import control_loop, transmit_scene, send_osc
+from .simulation import Simulation
 
 TIME_STEP_SECONDS = 1.0 / 60.0
+
 
 def simulation_loop(sim: Simulation, env: simpy.Environment, tick: float):
     print("Running simulation")
@@ -19,7 +20,7 @@ def simulation_loop(sim: Simulation, env: simpy.Environment, tick: float):
         # prev_scene = scene
         send_osc("/surfaces/Main/Background_1/opacity", 1.0)
         yield env.timeout(tick)
-    
+
 
 def main():
     sim = Simulation()
