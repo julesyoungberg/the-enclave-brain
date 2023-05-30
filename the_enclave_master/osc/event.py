@@ -1,6 +1,7 @@
 from .message import send_osc_message
 
 
+# @todo inherit from a scene object base class
 class OSCEvent:
     """
     A class representing an OSC event with an address and duration.

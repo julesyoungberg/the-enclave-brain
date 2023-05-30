@@ -1,4 +1,3 @@
-# An event group that randomizes the background within a specific cue bin
 from .event_manager import OSCEventManager
 
 
