@@ -1,5 +1,3 @@
-import threading
-
 import simpy
 
 from the_enclave_master.app import App
