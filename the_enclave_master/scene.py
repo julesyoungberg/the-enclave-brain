@@ -1,3 +1,20 @@
+class SceneObject:
+    """
+    A base class representing any object that features a `step` method, designed to be updated.
+    """
+
+    def __init__(self):
+        pass
+
+    def step(self, delta_time: float):
+        """
+        Method that should be overriden by subclasses to provide custom behavior for each time step.
+
+        :param delta_time: The time elapsed since the last time step.
+        """
+        raise NotImplementedError("This method must be implemented by subclasses.")
+
+
 class SceneManager:
     """
     A class for managing all objects in the scene.
@@ -7,7 +24,7 @@ class SceneManager:
     def __init__(self):
         self._objects = []
 
-    def add_object(self, obj):
+    def add_object(self, obj: SceneObject):
         """
         Adds an object to the scene manager's list of objects.
 
@@ -15,7 +32,7 @@ class SceneManager:
         """
         self._objects.append(obj)
 
-    def remove_object(self, obj):
+    def remove_object(self, obj: SceneObject):
         """
         Removes an object from the scene manager's list of objects.
 
@@ -23,7 +40,7 @@ class SceneManager:
         """
         self._objects.remove(obj)
 
-    def step(self, delta_time):
+    def step(self, delta_time: float):
         """
         Calls the `step` method of each object in the scene manager's list of objects.
 

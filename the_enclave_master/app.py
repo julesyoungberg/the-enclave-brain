@@ -9,7 +9,7 @@
 import threading
 
 from .control import control_loop
-from .scene_manager import SceneManager
+from .scene import SceneManager
 from .randomized_background import RandomizedBackground
 from .simulation import Simulation
 
