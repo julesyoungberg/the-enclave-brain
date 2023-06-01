@@ -88,8 +88,8 @@ MADMAPPER_ADDRESSES = {
 }
 
 
-def layer_cue(layer: str, cue_bank: str, index: int):
-    return MADMAPPER_ADDRESSES[layer]["cues"][cue_bank][index]
+def layer_cue(layer: str, bin: str, index: int):
+    return MADMAPPER_ADDRESSES[layer]["cues"][bin][index]
 
 
 def control(layer: str, control: str):
