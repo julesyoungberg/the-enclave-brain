@@ -1,5 +1,8 @@
-def cues(row: int, count: int):
-    return [f"/cues/selected/cues/by_cell/col_{i + 1}/row_{row}" for i in range(count)]
+def cues(row: int, count: int, **opts):
+    return [
+        {"address": f"/cues/selected/cues/by_cell/col_{i + 1}/row_{row}", **opts}
+        for i in range(count)
+    ]
 
 
 def control_addresses(name: str):
@@ -12,11 +15,11 @@ def control_addresses(name: str):
     }
 
 
-MADMAPPER_ADDRESSES = {
+MADMAPPER_CONFIG = {
     "fg2": {
         "cues": {
             "birds": cues(4, 4),
-            "falling_trees": cues(19, 1),
+            "falling_trees": cues(19, 1, one_shot=True),
             "fires": cues(24, 8),
             "flowers": cues(29, 4),
             "forest": cues(34, 1),
@@ -30,7 +33,7 @@ MADMAPPER_ADDRESSES = {
     "fg1": {
         "cues": {
             "birds": cues(5, 2),
-            "falling_tree": cues(20, 1),
+            "falling_tree": cues(20, 1, one_shot=True),
             "fires": cues(25, 2),
             "flowers": cues(30, 3),
             "forest": cues(35, 1),
@@ -42,7 +45,7 @@ MADMAPPER_ADDRESSES = {
     "bg2": {
         "cues": {
             "boreal": cues(1, 3),
-            "deaad": cues(7, 2),
+            "dead": cues(7, 2),
             "deforestation": cues(10, 2),
             "dry_pine": cues(13, 3),
             "fall": cues(16, 5),
@@ -89,8 +92,8 @@ MADMAPPER_ADDRESSES = {
 
 
 def layer_cue(layer: str, bin: str, index: int):
-    return MADMAPPER_ADDRESSES[layer]["cues"][bin][index]
+    return MADMAPPER_CONFIG[layer]["cues"][bin][index]["address"]
 
 
 def control(layer: str, control: str):
-    return MADMAPPER_ADDRESSES[layer]["controls"][control]
+    return MADMAPPER_CONFIG[layer]["controls"][control]

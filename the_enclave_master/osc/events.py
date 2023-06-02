@@ -54,7 +54,7 @@ class OSCEventGroup(OSCEvent):
         self.done = done
 
 
-class EventSequence(OSCEventGroup):
+class OSCEventSequence(OSCEventGroup):
     """A class representing a sequence of events to be processed in order.
 
     This class extends the OSCEventGroup class, which provides a data structure to
@@ -74,7 +74,7 @@ class EventSequence(OSCEventGroup):
         super().step()
 
 
-class EventStack(OSCEventGroup):
+class OSCEventStack(OSCEventGroup):
     """A class that represents a stack of OSC events to be executed in parallel.
 
     This class inherits from the OSCEventGroup class and defines

@@ -10,30 +10,33 @@ import random
 import threading
 
 from .control import control_loop
-from .osc.addresses import MADMAPPER_ADDRESSES
-from .randomized_background import RandomizedBackground
+from .layer_randomizer import LayerRandomizer
 from .scene import SceneManager
+from .scenes import SCENES
 from .simulation import Simulation
 
 TIME_STEP_SECONDS = 1.0 / 60.0
 
-# both BGs have the same bins (unlike FGs)
-BG_BINS = list(MADMAPPER_ADDRESSES["bg1"]["cues"].keys())
+SCENE_NAMES = list(SCENES.keys())
 
 
 class App:
     def __init__(self):
         self.simulation = Simulation()
         self.scene_manager = SceneManager()
-        self.bg_randomizer = RandomizedBackground()
+        self.bg_randomizer = LayerRandomizer(self.event_manager, layer_type="bg")
+        self.fg_randomizer = LayerRandomizer(self.event_manager, layer_type="fg")
         self.control_thread = threading.Thread(target=control_loop, args=(self,))
         self.control_thread.start()
 
     def update(self, dt: float):
         # randomly change bin for now
         if random.uniform(0, 1) < 0.01:
-            self.bg_randomizer.bin = BG_BINS[random.randint(0, len(BG_BINS) - 1)]
+            new_scene = SCENE_NAMES[random.randint(0, len(SCENE_NAMES) - 1)]
+            self.bg_randomizer.scene = new_scene
+            self.fg_randomizer.scene = new_scene
 
         self.simulation.update(dt)
         self.scene_manager.step(dt)
         self.bg_randomizer.step(dt)
+        self.fg_randomizer.step(dt)
