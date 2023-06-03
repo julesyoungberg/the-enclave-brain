@@ -12,7 +12,7 @@ class Simulation:
 
     Methods:
         - update_config(key: str, value: float) -> None: updates the value of a configuration parameter with a given key
-        - update() -> None: updates the simulation by one timestep
+        - update(dt: float) -> None: updates the simulation by one timestep
         - get_scene() -> str: returns the current scene of the simulation
     """
 
@@ -31,7 +31,7 @@ class Simulation:
         self.config[key] = value
         self.lock.release()
 
-    def update(self):
+    def update(self, dt: float):
         self.lock.acquire()
         # @todo update simulation by timestep
         self.scene = "scene1"

@@ -11,7 +11,7 @@ import threading
 
 from .control import control_loop
 from .layer_randomizer import LayerRandomizer
-from .scene import SceneManager
+from .osc.events import OSCEventManager
 from .scenes import SCENES
 from .simulation import Simulation
 
@@ -21,9 +21,24 @@ SCENE_NAMES = list(SCENES.keys())
 
 
 class App:
+    """
+    Main application class for running simulation and managing visual layer updates.
+
+    Attributes:
+        simulation (Simulation): The simulation instance used for updating the physics simulation.
+        event_manager (OSCEventManager): The event manager instance used for managing OSC events.
+        bg_randomizer (LayerRandomizer): The layer randomizer instance used for updating the background layer.
+        fg_randomizer (LayerRandomizer): The layer randomizer instance used for updating the foreground layer.
+        control_thread (Thread): The control thread instance used for running the control loop.
+
+    Methods:
+        update(dt): Updates the simulation and visual layers, including randomly changing the scene.
+
+    """
+
     def __init__(self):
         self.simulation = Simulation()
-        self.scene_manager = SceneManager()
+        self.event_manager = OSCEventManager()
         self.bg_randomizer = LayerRandomizer(self.event_manager, layer_type="bg")
         self.fg_randomizer = LayerRandomizer(self.event_manager, layer_type="fg")
         self.control_thread = threading.Thread(target=control_loop, args=(self,))
@@ -38,6 +53,6 @@ class App:
             self.fg_randomizer.scene = new_scene
 
         self.simulation.update(dt)
-        self.scene_manager.step(dt)
-        self.bg_randomizer.step(dt)
-        self.fg_randomizer.step(dt)
+        self.event_manager.update(dt)
+        self.bg_randomizer.update(dt)
+        self.fg_randomizer.update(dt)

@@ -1,8 +1,7 @@
-from ..scene import SceneObject
 from .messages import send_osc_message
 
 
-class OSCEvent(SceneObject):
+class OSCEvent:
     """
     A class representing an OSC event with an address and duration.
 
@@ -19,7 +18,7 @@ class OSCEvent(SceneObject):
         self.time = 0.0
         self.done = False
 
-    def step(self, dt: float, value: float = None):
+    def update(self, dt: float, value: float = None):
         if value is not None:
             send_osc_message(self.address, value)
         self.time += dt
@@ -45,7 +44,7 @@ class OSCEventGroup(OSCEvent):
         # no osc messages are sent to the address since the step method is overriden
         super().__init__("event_group")
 
-    def step(self):
+    def update(self):
         """Checks if all events are done and sets the done attribute of the parent class."""
         done = True
         for event in self.events:
@@ -64,14 +63,14 @@ class OSCEventSequence(OSCEventGroup):
         events: A list of OSCEvent objects representing the events in the sequence.
     """
 
-    def step(self, dt: float):
+    def update(self, dt: float):
         """Calls the step method of the next non-completed event in the sequence,
         passing in the specified time increment."""
         for event in self.events:
             if not event.done:
-                event.step(dt)
+                event.update(dt)
                 break
-        super().step()
+        super().update()
 
 
 class OSCEventStack(OSCEventGroup):
@@ -88,13 +87,13 @@ class OSCEventStack(OSCEventGroup):
         events (list): The list of OSC events to be executed.
     """
 
-    def step(self, dt: float):
+    def update(self, dt: float):
         """Executes the stack of OSC events on a
         step-wise basis with the provided time delta."""
         for event in self.events:
             if not event.done:
-                event.step(dt)
-        super().step()
+                event.update(dt)
+        super().update()
 
 
 class OSCEventManager:
@@ -111,10 +110,10 @@ class OSCEventManager:
         """Add an OSCEvent to the event manager."""
         self.__events.append(event)
 
-    def step(self, dt: float):
+    def update(self, dt: float):
         """Execute all events in the manager and remove completed events."""
         for event in self.__events:
-            event.step(dt)
+            event.update(dt)
         self.__events = [e for e in self.__events if not e.done]
 
 
@@ -127,5 +126,5 @@ class OSCSleepEvent(OSCEvent):
     def __init__(self, duration: float):
         super().__init__("sleep", duration)
 
-    def step(self, dt: float):
-        super().step(dt, None)
+    def update(self, dt: float):
+        super().update(dt, None)

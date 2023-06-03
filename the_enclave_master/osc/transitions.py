@@ -15,14 +15,14 @@ class OSCTransition(OSCEvent):
         self.start = start
         self.end = end
 
-    def step(self, dt: float):
+    def update(self, dt: float):
         """Calculates the current parameter value based on time and sends an OSC message with the current value to the specified address.
 
         Args:
             dt (float): The time elapsed since the last call to step.
         """
         value = ((self.time / self.duration) * (self.end - self.start) + self.start,)
-        super().step(dt, value)
+        super().update(dt, value)
 
 
 class ControlFade(OSCTransition):
@@ -134,8 +134,8 @@ class TriggerCue(OSCEvent):
         address = addresses.layer_cue(layer, cue_bin, cue_index)
         super().__init__(address)
 
-    def step(self, dt: float):
-        super().step(dt, 1.0)
+    def update(self, dt: float):
+        super().update(dt, 1.0)
 
 
 class PlayOneShot(OSCEventSequence):

@@ -64,7 +64,7 @@ class LayerRandomizer:
     def set_bin(self, bin: str):
         self.bin = bin
 
-    def step(self, dt: float):
+    def update(self, dt: float):
         self.time += dt
         if self.time < self.frequency:
             return
