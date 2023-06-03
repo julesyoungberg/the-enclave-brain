@@ -32,6 +32,7 @@ class App:
     def update(self, dt: float):
         # randomly change bin for now
         if random.uniform(0, 1) < 0.01:
+            # @todo implement slow transition where fg changes first for 30 seconds or so
             new_scene = SCENE_NAMES[random.randint(0, len(SCENE_NAMES) - 1)]
             self.bg_randomizer.scene = new_scene
             self.fg_randomizer.scene = new_scene

@@ -41,14 +41,14 @@ class LayerTransition(OSCEventSequence):
 
     Attributes:
     - layer (str): The name of the layer to transition.
-    - cue_bank (str): The name of the cue bank associated with the layer.
+    - cue_bin (str): The name of the cue bank associated with the layer.
     - cue_index (int): The index of the cue to trigger.
     - use_mask (bool): Determines whether or not the transition should use a mask.
     - fade (float): The duration of the fade, in seconds, if any.
     """
 
     def __init__(
-        self, layer: str, cue_bank: str, cue_index: int, use_mask=False, fade=0.0
+        self, layer: str, cue_bin: str, cue_index: int, use_mask=False, fade=0.0
     ):
         events = []
 
@@ -59,9 +59,9 @@ class LayerTransition(OSCEventSequence):
                 events.append(ControlFade(layer, "opacity", 1.0, 0.0, fade))
 
         events.append(
-            TriggerCue(
+            PlayCue(
                 layer,
-                cue_bank,
+                cue_bin,
                 cue_index,
             )
         )
@@ -84,7 +84,7 @@ class LayerSwitch(OSCEventSequence):
     Args:
         prev_layer (str): The name of the previous layer to be switched.
         next_layer (str): The name of the next layer to be switched.
-        cue_bank (int): The number of the cue to be triggered in the next layer.
+        cue_bin (int): The number of the cue to be triggered in the next layer.
         cue_index (int): The index of the cue to be triggered in the next layer.
         fade (float): The fade duration for all fade effects in the sequence.
         use_mask (bool): A flag indicating whether a mask should be used or not.
@@ -94,12 +94,13 @@ class LayerSwitch(OSCEventSequence):
         self,
         prev_layer: str,
         next_layer: str,
-        cue_bank: str,
+        cue_bin: str,
         cue_index: int,
         fade=6.0,
         use_mask=False,
     ):
-        events = [TriggerCue(next_layer, cue_bank, cue_index), OSCSleep(6.0)]
+        # @todo set opacity before playing cue like in other transition
+        events = [PlayCue(next_layer, cue_bin, cue_index), OSCSleepEvent(6.0)]
 
         if use_mask:
             events.append(ControlFade(next_layer, "mask_opacity", 0.0, 1.0, 0.0))
@@ -125,10 +126,58 @@ class LayerSwitch(OSCEventSequence):
 class TriggerCue(OSCEvent):
     """Represents an instantaneous OSC that triggers a cue for a specific layer, cue bank, and index."""
 
-    def __init__(self, layer: str, cue_bin: str, cue_index: int):
-        # @todo handle one shots, inherit from osc event group
+    def __init__(self, layer=None, cue_bin=None, cue_index=None, address=None):
+        if (layer == None or cue_bin == None or cue_index == None) and address == None:
+            raise Exception(
+                "Invalid cue config, must provide an address, or the layer, bin, and index"
+            )
         address = addresses.layer_cue(layer, cue_bin, cue_index)
         super().__init__(address)
 
     def step(self, dt: float):
         super().step(dt, 1.0)
+
+
+class PlayOneShot(OSCEventSequence):
+    def __init__(self, layer: str, cue_bin: str, cue_index: int, fade=1.0):
+        events = []
+
+        # make sure the layer is blank (blackout)
+        events.append(TriggerCue(address=addresses.layer_blackout(layer)))
+
+        # set the opacity
+        events.append(ControlFade(layer, "opacity", 0.0, 1.0, 0.0))
+
+        # play the cue
+        events.append(
+            TriggerCue(
+                layer,
+                cue_bin,
+                cue_index,
+            )
+        )
+
+        # sleep till movie end
+        events.append(OSCSleepEvent(6.0))
+
+        # fade out on movie end (need clip length in config)
+        if fade > 0:
+            events.append(ControlFade(layer, "opacity", 1.0, 0.0, fade))
+
+        super().__init__(events)
+
+
+class PlayCue(OSCEventSequence):
+    def __init__(
+        self, layer: str, cue_bin: str, cue_index: int, fade=1.0, use_mask=False
+    ):
+        events = []
+
+        cue = addresses.MADMAPPER_CONFIG[layer]["cues"][cue_index]
+
+        if cue.has_key("one_shot"):
+            events.append(PlayOneShot(layer, cue_bin, cue_index, fade))
+        else:
+            events.append(TriggerCue(layer, cue_bin, cue_index))
+
+        super().__init__(events)

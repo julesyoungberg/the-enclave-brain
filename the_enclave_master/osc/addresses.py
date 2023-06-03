@@ -1,8 +1,9 @@
+def cue(row: int, col: int, **opts):
+    return {"address": f"/cues/selected/cues/by_cell/col_{col}/row_{row}", **opts}
+
+
 def cues(row: int, count: int, **opts):
-    return [
-        {"address": f"/cues/selected/cues/by_cell/col_{i + 1}/row_{row}", **opts}
-        for i in range(count)
-    ]
+    return [cue(row, i + 1, **opts) for i in range(count)]
 
 
 def control_addresses(name: str):
@@ -19,7 +20,7 @@ MADMAPPER_CONFIG = {
     "fg2": {
         "cues": {
             "birds": cues(4, 4),
-            "falling_trees": cues(19, 1, one_shot=True),
+            "falling_trees": [cue(19, 1, one_shot=True, clip_length=10)],
             "fires": cues(24, 8),
             "flowers": cues(29, 4),
             "forest": cues(34, 1),
@@ -27,18 +28,20 @@ MADMAPPER_CONFIG = {
             "rain": cues(47, 2),
             "storms": cues(61, 3),
             "winter": cues(69, 1),
+            "blackout": cue(74, 4),
         },
         "controls": control_addresses("Foreground_2"),
     },
     "fg1": {
         "cues": {
             "birds": cues(5, 2),
-            "falling_tree": cues(20, 1, one_shot=True),
+            "falling_tree": [cue(20, 1, one_shot=True, clip_length=10)],
             "fires": cues(25, 2),
             "flowers": cues(30, 3),
             "forest": cues(35, 1),
             "mushrooms": cues(43, 5),
             "storms": cues(62, 3),
+            "blackout": cue(74, 3),
         },
         "controls": control_addresses("Foreground_1"),
     },
@@ -62,6 +65,7 @@ MADMAPPER_CONFIG = {
             "storms": cues(63, 3),
             "summer": cues(66, 6),
             "winter": cues(71, 5),
+            "blackout": cue(74, 2),
         },
         "controls": control_addresses("Background_2"),
     },
@@ -85,10 +89,15 @@ MADMAPPER_CONFIG = {
             "storms": cues(64, 2),
             "summer": cues(67, 6),
             "winter": cues(72, 6),
+            "blackout": cue(74, 1),
         },
         "controls": control_addresses("Background_1"),
     },
 }
+
+
+def layer_blackout(layer: str):
+    return MADMAPPER_CONFIG[layer]["cues"]["blackout"]["address"]
 
 
 def layer_cue(layer: str, bin: str, index: int):
