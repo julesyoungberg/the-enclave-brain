@@ -139,6 +139,20 @@ class TriggerCue(OSCEvent):
 
 
 class PlayOneShot(OSCEventSequence):
+    """
+    A class that represents a sequence of events to play a one-shot video cue in a given MadMapper layer.
+
+    Attributes:
+    - layer (str): The name of the layer in which the cue is being played.
+    - cue_bin (str): The name of the cue bin containing the cue.
+    - cue_index (int): The index of the cue within the cue bin.
+    - fade (float): The duration (in seconds) of the fade-out when the cue ends. Defaults to 1.0.
+
+    Methods:
+    - __init__(self, layer, cue_bin, cue_index, fade=1.0): The constructor method that initializes the event sequence with
+    a list of events, including a blackout trigger before the cue starts, a fade-in, and a fade-out on movie end (if fade > 0).
+    """
+
     def __init__(self, layer: str, cue_bin: str, cue_index: int, fade=1.0):
         events = []
 
@@ -158,6 +172,7 @@ class PlayOneShot(OSCEventSequence):
         )
 
         # sleep till movie end
+        # @todo read from config
         events.append(OSCSleepEvent(6.0))
 
         # fade out on movie end (need clip length in config)
@@ -168,6 +183,25 @@ class PlayOneShot(OSCEventSequence):
 
 
 class PlayCue(OSCEventSequence):
+    """
+    A class representing a sequence of events to play a specified cue in a given layer in MadMapper.
+
+    Args:
+        layer (str): The name of the layer in which the cue is being played.
+        cue_bin (str): The name of the cue bin containing the cue.
+        cue_index (int): The index of the cue within the cue bin.
+        fade (float, optional): The duration (in seconds) of the fade-in for the cue. Defaults to 1.0.
+        use_mask (bool, optional): Whether or not to use the cue's mask (if applicable). Defaults to False.
+
+    Attributes:
+        events (list): A list of PlayOneShot or TriggerCue events, depending on whether the cue is a one-shot or not.
+
+    Methods:
+        __init__(self, layer: str, cue_bin: str, cue_index: int, fade=1.0, use_mask=False):
+            Creates a new PlayCue instance with the specified arguments.
+
+    """
+
     def __init__(
         self, layer: str, cue_bin: str, cue_index: int, fade=1.0, use_mask=False
     ):

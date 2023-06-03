@@ -12,6 +12,13 @@ CONFIG_MAPPING = {
 
 
 def control_loop(sim: Simulation):
+    """
+    This function runs an infinite control loop that listens for MIDI input and updates the simulation accordingly.
+    The input parameter is a simulation object (sim).
+    The loop continuously listens on the MIDI port.
+    It parses the MIDI messages, updates the simulation config if a valid mapping is found, and ignores unknown channels.
+    If the MIDI port becomes unavailable, the loop sleeps before retrying.
+    """
     while True:
         try:
             with mido.open_input() as inport:
