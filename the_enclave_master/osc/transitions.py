@@ -207,9 +207,9 @@ class PlayCue(OSCEventSequence):
     ):
         events = []
 
-        cue = addresses.MADMAPPER_CONFIG[layer]["cues"][cue_index]
+        cue = addresses.MADMAPPER_CONFIG[layer]["cues"][cue_bin][cue_index]
 
-        if cue.has_key("one_shot"):
+        if "one_shot" in cue and cue["one_shot"]:
             events.append(PlayOneShot(layer, cue_bin, cue_index, fade))
         else:
             events.append(TriggerCue(layer, cue_bin, cue_index))

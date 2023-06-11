@@ -39,16 +39,22 @@ class App:
     def __init__(self):
         self.simulation = Simulation()
         self.event_manager = OSCEventManager()
-        self.bg_randomizer = LayerRandomizer(self.event_manager, layer_type="bg")
-        self.fg_randomizer = LayerRandomizer(self.event_manager, layer_type="fg")
+        self.scene = 0
+        self.bg_randomizer = LayerRandomizer(
+            self.event_manager, layer_type="bg", scene=SCENE_NAMES[self.scene]
+        )
+        self.fg_randomizer = LayerRandomizer(
+            self.event_manager, layer_type="fg", scene=SCENE_NAMES[self.scene]
+        )
         self.control_thread = threading.Thread(target=control_loop, args=(self,))
         self.control_thread.start()
 
     def update(self, dt: float):
         # randomly change scene for now
-        if random.uniform(0, 1) < 0.01:
+        if random.uniform(0, 1) < 0.00005:
+            self.scene = (self.scene + 1) % len(SCENE_NAMES)
             # @todo implement slow transition where fg changes first for 30 seconds or so
-            new_scene = SCENE_NAMES[random.randint(0, len(SCENE_NAMES) - 1)]
+            new_scene = SCENE_NAMES[self.scene]
             self.bg_randomizer.scene = new_scene
             self.fg_randomizer.scene = new_scene
 

@@ -9,3 +9,15 @@ Input is taken from the controller as MIDI signals over USB.
 ## output
 
 Output is OSC signals for triggering scenes.
+
+## setup
+
+```
+python3 -m pip install -r requirements.txt
+```
+
+## run
+
+```
+python3 main.py
+```

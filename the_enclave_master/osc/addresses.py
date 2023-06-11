@@ -49,7 +49,7 @@ MADMAPPER_CONFIG = {
         "cues": {
             "boreal": cues(1, 3),
             "dead": cues(7, 2),
-            "deforestation": cues(10, 2),
+            "deforestation": cues(10, 5),
             "dry_pine": cues(13, 3),
             "fall": cues(16, 5),
             "falling_trees": cues(21, 1),
@@ -73,7 +73,7 @@ MADMAPPER_CONFIG = {
         "cues": {
             "boreal": cues(2, 2),
             "dead": cues(8, 5),
-            "deforestation": cues(11, 2),
+            "deforestation": cues(11, 6),
             "dry_pine": cues(14, 2),
             "fall": cues(17, 4),
             "falling_trees": cues(22, 1),

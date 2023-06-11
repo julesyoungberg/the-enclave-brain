@@ -104,7 +104,7 @@ class OSCEventManager:
     """
 
     def __init__(self):
-        self.__events = list[OSCEvent]
+        self.__events: list[OSCEvent] = []
 
     def add_event(self, event: OSCEvent):
         """Add an OSCEvent to the event manager."""

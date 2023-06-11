@@ -19,19 +19,20 @@ def control_loop(sim: Simulation):
     It parses the MIDI messages, updates the simulation config if a valid mapping is found, and ignores unknown channels.
     If the MIDI port becomes unavailable, the loop sleeps before retrying.
     """
-    while True:
-        try:
-            with mido.open_input() as inport:
-                print("Listening on MIDI port", inport)
-                for msg in inport:
-                    print("Received MIDI message", msg)
-                    key = msg.channel
-                    value = msg.value
-                    if key not in CONFIG_MAPPING:
-                        print("Unknown channel:", key)
-                        continue
-                    sim.update_config(CONFIG_MAPPING[key], float(value) / 255.0)
-        except Exception as e:
-            print(e)
-        print("MIDI port unavailable, sleeping and retrying")
-        time.sleep(5)
+    return None
+    # while True:
+    #     try:
+    #         with mido.open_input() as inport:
+    #             print("Listening on MIDI port", inport)
+    #             for msg in inport:
+    #                 print("Received MIDI message", msg)
+    #                 key = msg.channel
+    #                 value = msg.value
+    #                 if key not in CONFIG_MAPPING:
+    #                     print("Unknown channel:", key)
+    #                     continue
+    #                 sim.update_config(CONFIG_MAPPING[key], float(value) / 255.0)
+    #     except Exception as e:
+    #         print(e)
+    #     print("MIDI port unavailable, sleeping and retrying")
+    #     time.sleep(5)

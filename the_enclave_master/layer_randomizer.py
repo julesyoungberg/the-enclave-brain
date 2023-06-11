@@ -16,7 +16,7 @@ class LayerRandomizer:
         current_layer (str): The current background layer being displayed.
         current_index (int): The current index of the cue for the current layer.
         time (float): The time elapsed since the last cue event was triggered.
-        frequency (float): The frequency of cue events in seconds.
+        frequency (float): The frequency of cue events in milliseconds.
     """
 
     def __init__(
@@ -29,10 +29,10 @@ class LayerRandomizer:
         self.current_layer = f"{layer_type}1"
         self.current_index = 0
         self.time = 0.0
-        self.frequency = 30.0  # seconds
-        self.update()
+        self.frequency = 30000.0  # ms
+        self.update_layer()
 
-    def update(self, prev_layer=None):
+    def update_layer(self, prev_layer=None):
         # randomly select new layer and cue
         layer_index = random.randint(1, 2)
         self.current_layer = f"{self.layer_type}{layer_index}"
@@ -70,5 +70,4 @@ class LayerRandomizer:
             return
 
         self.time = 0.0
-
-        self.update()
+        self.update_layer()
