@@ -11,7 +11,9 @@ import threading
 
 from .control import control_loop
 from .layer_randomizer import LayerRandomizer
+from .osc import addresses
 from .osc.events import OSCEventManager
+from .osc.transitions import OSCEventStack, TriggerCue
 from .scenes import SCENES
 from .simulation import Simulation
 
@@ -38,7 +40,21 @@ class App:
 
     def __init__(self):
         self.simulation = Simulation()
+        self.control_thread = threading.Thread(target=control_loop, args=(self,))
+        self.control_thread.start()
+
         self.event_manager = OSCEventManager()
+        # black out every layer
+        self.event_manager.add_event(
+            OSCEventStack(
+                [
+                    TriggerCue(address=addresses.layer_blackout(layer))
+                    for layer in ["bg1", "bg2", "fg1", "fg2"]
+                ]
+            )
+        )
+
+        # set initial scene and create layer randomizers
         self.scene = 0
         self.bg_randomizer = LayerRandomizer(
             self.event_manager, layer_type="bg", scene=SCENE_NAMES[self.scene]
@@ -46,8 +62,6 @@ class App:
         self.fg_randomizer = LayerRandomizer(
             self.event_manager, layer_type="fg", scene=SCENE_NAMES[self.scene]
         )
-        self.control_thread = threading.Thread(target=control_loop, args=(self,))
-        self.control_thread.start()
 
     def update(self, dt: float):
         # randomly change scene for now

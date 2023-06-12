@@ -96,13 +96,29 @@ MADMAPPER_CONFIG = {
 }
 
 
-def layer_blackout(layer: str):
+def layer_blackout(layer: str) -> str:
     return MADMAPPER_CONFIG[layer]["cues"]["blackout"]["address"]
 
 
-def layer_cue(layer: str, bin: str, index: int):
-    return MADMAPPER_CONFIG[layer]["cues"][bin][index]["address"]
+def layer_cue(layer: str, bin: str, index: int) -> dict:
+    return MADMAPPER_CONFIG[layer]["cues"][bin][index]
 
 
-def control(layer: str, control: str):
+def layer_cue_address(layer: str, bin: str, index: int) -> str:
+    return layer_cue(layer, bin, index)["address"]
+
+
+def control(layer: str, control: str) -> str:
     return MADMAPPER_CONFIG[layer]["controls"][control]
+
+
+def is_one_shot(layer: str, bin: str, index: int) -> bool:
+    config = layer_cue(layer, bin, index)
+    return "one_shot" in config and config["one_shot"]
+
+
+def clip_length(layer: str, bin: str, index: int) -> float:
+    config = layer_cue(layer, bin, index)
+    if "clip_length" in config:
+        return config["clip_length"]
+    return 6.0

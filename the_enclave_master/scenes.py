@@ -4,11 +4,11 @@
 SCENES = {
     "healthy_forest": {
         "bg": ["boreal", "fall", "mountains", "rainforest"],
-        "fg": ["birds", "flowers", "mushrooms"],
+        "fg": ["birds", "flowers"],
     },
     "dying_forest": {
         "bg": ["deforestation", "dry_pine", "smoke", "storms"],
-        "fg": ["falling_trees", "fires", "storms"],
+        "fg": ["falling_trees", "storms"],
     },
     "dead_forest": {
         "bg": ["dead", "fires"],

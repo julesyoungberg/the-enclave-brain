@@ -10,8 +10,10 @@ class OSCTransition(OSCEvent):
         end (float): The end value of the parameter.
     """
 
-    def __init__(self, address: str, start: float, end: float, duration: float):
-        super().__init__(address, duration)
+    def __init__(
+        self, address: str, start: float, end: float, duration: float, debug=False
+    ):
+        super().__init__(address, duration, debug=debug)
         self.start = start
         self.end = end
 
@@ -21,7 +23,9 @@ class OSCTransition(OSCEvent):
         Args:
             dt (float): The time elapsed since the last call to step.
         """
-        value = ((self.time / self.duration) * (self.end - self.start) + self.start,)
+        value = self.end
+        if self.duration > 0.0:
+            value = (self.time / self.duration) * (self.end - self.start) + self.start
         super().update(dt, value)
 
 
@@ -29,10 +33,19 @@ class ControlFade(OSCTransition):
     """Represents a control transition for a layer."""
 
     def __init__(
-        self, layer: str, control: str, start: float, end: float, duration: float
+        self,
+        layer: str,
+        control: str,
+        start: float,
+        end: float,
+        duration: float,
+        debug=False,
     ):
+        print(
+            f"ControlFade: layer={layer}, control={control}, start={start}, end={end}, duration={duration}"
+        )
         address = addresses.control(layer, control)
-        super().__init__(address, start, end, duration)
+        super().__init__(address, start, end, duration, debug=debug)
 
 
 class LayerTransition(OSCEventSequence):
@@ -48,31 +61,45 @@ class LayerTransition(OSCEventSequence):
     """
 
     def __init__(
-        self, layer: str, cue_bin: str, cue_index: int, use_mask=False, fade=0.0
+        self,
+        layer: str,
+        cue_bin: str,
+        cue_index: int,
+        use_mask=False,
+        fade=0.0,
+        prev_was_one_shot=False,
     ):
+        print(
+            f"\nLayerTransition: layer={layer}, cue_bin={cue_bin}, cue_index={cue_index}, fade={fade}, use_mask={use_mask}"
+        )
         events = []
 
-        if fade > 0.0:
-            if use_mask:
-                events.append(ControlFade(layer, "mask_opacity", 0.5, 1.0, fade))
-            else:
-                events.append(ControlFade(layer, "opacity", 1.0, 0.0, fade))
+        is_one_shot = addresses.is_one_shot(layer, cue_bin, cue_index)
 
-        events.append(
-            PlayCue(
-                layer,
-                cue_bin,
-                cue_index,
+        if is_one_shot:
+            events.append(PlayOneShot(layer, cue_bin, cue_index))
+        else:
+            if fade > 0.0 and not prev_was_one_shot:
+                if use_mask:
+                    events.append(ControlFade(layer, "mask_opacity", 0.5, 1.0, fade))
+                else:
+                    events.append(ControlFade(layer, "opacity", 1.0, 0.0, fade))
+
+            events.append(
+                TriggerCue(
+                    layer,
+                    cue_bin,
+                    cue_index,
+                )
             )
-        )
 
-        events.append(OSCSleepEvent(6.0))
+            events.append(OSCSleepEvent(6.0))
 
-        if fade > 0:
-            if use_mask:
-                events.append(ControlFade(layer, "mask_opacity", 1.0, 0.5, fade))
-            else:
-                events.append(ControlFade(layer, "opacity", 0.0, 1.0, fade))
+            if fade > 0:
+                if use_mask:
+                    events.append(ControlFade(layer, "mask_opacity", 1.0, 0.5, fade))
+                else:
+                    events.append(ControlFade(layer, "opacity", 0.0, 1.0, fade))
 
         super().__init__(events)
 
@@ -98,27 +125,49 @@ class LayerSwitch(OSCEventSequence):
         cue_index: int,
         fade=6.0,
         use_mask=False,
+        prev_was_one_shot=False,
     ):
-        # @todo set opacity before playing cue like in other transition
-        events = [PlayCue(next_layer, cue_bin, cue_index), OSCSleepEvent(6.0)]
+        print(
+            f"\nLayerSwitch: prev_layer={prev_layer}, next_layer={next_layer}, cue_bin={cue_bin}, cue_index={cue_index}, fade={fade}, use_mask={use_mask}"
+        )
+        # @todo set opacity before playing cue like in other transition?
+        # or maybe not since we blackout everything at init
+        events = []
 
-        if use_mask:
-            events.append(ControlFade(next_layer, "mask_opacity", 0.0, 1.0, 0.0))
+        swap_events = []
 
-        events.append(ControlFade(next_layer, "opacity", 0.0, 0.5, fade))
+        if not prev_was_one_shot:
+            swap_events.append(ControlFade(prev_layer, "opacity", 1.0, 0.5, fade))
 
-        swap_events = [
-            ControlFade(prev_layer, "opacity", 1.0, 0.5, fade),
-            ControlFade(next_layer, "opacity", 0.5, 1.0, fade),
-        ]
+        is_one_shot = addresses.is_one_shot(next_layer, cue_bin, cue_index)
 
-        if use_mask:
-            swap_events.append(ControlFade(prev_layer, "mask_opacity", 0.7, 1.0, fade))
-            swap_events.append(ControlFade(next_layer, "mask_opacity", 1.0, 0.7, fade))
+        if not is_one_shot:
+            events.append(TriggerCue(next_layer, cue_bin, cue_index))
+            events.append(OSCSleepEvent(6.0))
+            if use_mask:
+                events.append(ControlFade(next_layer, "mask_opacity", 0.0, 1.0, 0.0))
 
-        events.append(OSCEventStack(swap_events))
+            events.append(ControlFade(next_layer, "opacity", 0.0, 0.5, fade))
 
-        events.append(ControlFade(prev_layer, "opacity", 0.5, 0.0, fade))
+            swap_events.append(ControlFade(next_layer, "opacity", 0.5, 1.0, fade))
+
+            if use_mask:
+                if not prev_was_one_shot:
+                    swap_events.append(
+                        ControlFade(prev_layer, "mask_opacity", 0.7, 1.0, fade)
+                    )
+                swap_events.append(
+                    ControlFade(next_layer, "mask_opacity", 1.0, 0.7, fade)
+                )
+
+        if len(swap_events) > 0:
+            events.append(OSCEventStack(swap_events))
+
+        if not prev_was_one_shot:
+            events.append(ControlFade(prev_layer, "opacity", 0.5, 0.0, fade))
+
+        if is_one_shot:
+            events.append(PlayOneShot(next_layer, cue_bin, cue_index))
 
         super().__init__(events)
 
@@ -127,11 +176,15 @@ class TriggerCue(OSCEvent):
     """Represents an instantaneous OSC that triggers a cue for a specific layer, cue bank, and index."""
 
     def __init__(self, layer=None, cue_bin=None, cue_index=None, address=None):
+        print(
+            f"TriggerCue: layer={layer}, cue_bin={cue_bin}, cue_index={cue_index}, address={address}"
+        )
         if (layer == None or cue_bin == None or cue_index == None) and address == None:
             raise Exception(
                 "Invalid cue config, must provide an address, or the layer, bin, and index"
             )
-        address = addresses.layer_cue(layer, cue_bin, cue_index)
+        if address is None:
+            address = addresses.layer_cue_address(layer, cue_bin, cue_index)
         super().__init__(address)
 
     def update(self, dt: float):
@@ -154,6 +207,9 @@ class PlayOneShot(OSCEventSequence):
     """
 
     def __init__(self, layer: str, cue_bin: str, cue_index: int, fade=1.0):
+        print(
+            f"PlayOneShot: layer={layer}, cue_bin={cue_bin}, cue_index={cue_index}, fade={fade}"
+        )
         events = []
 
         # make sure the layer is blank (blackout)
@@ -172,46 +228,9 @@ class PlayOneShot(OSCEventSequence):
         )
 
         # sleep till movie end
-        # @todo read from config
-        events.append(OSCSleepEvent(6.0))
+        events.append(OSCSleepEvent(addresses.clip_length(layer, cue_bin, cue_index)))
 
-        # fade out on movie end (need clip length in config)
-        if fade > 0:
-            events.append(ControlFade(layer, "opacity", 1.0, 0.0, fade))
-
-        super().__init__(events)
-
-
-class PlayCue(OSCEventSequence):
-    """
-    A class representing a sequence of events to play a specified cue in a given layer in MadMapper.
-
-    Args:
-        layer (str): The name of the layer in which the cue is being played.
-        cue_bin (str): The name of the cue bin containing the cue.
-        cue_index (int): The index of the cue within the cue bin.
-        fade (float, optional): The duration (in seconds) of the fade-in for the cue. Defaults to 1.0.
-        use_mask (bool, optional): Whether or not to use the cue's mask (if applicable). Defaults to False.
-
-    Attributes:
-        events (list): A list of PlayOneShot or TriggerCue events, depending on whether the cue is a one-shot or not.
-
-    Methods:
-        __init__(self, layer: str, cue_bin: str, cue_index: int, fade=1.0, use_mask=False):
-            Creates a new PlayCue instance with the specified arguments.
-
-    """
-
-    def __init__(
-        self, layer: str, cue_bin: str, cue_index: int, fade=1.0, use_mask=False
-    ):
-        events = []
-
-        cue = addresses.MADMAPPER_CONFIG[layer]["cues"][cue_bin][cue_index]
-
-        if "one_shot" in cue and cue["one_shot"]:
-            events.append(PlayOneShot(layer, cue_bin, cue_index, fade))
-        else:
-            events.append(TriggerCue(layer, cue_bin, cue_index))
+        # fade out on movie end
+        events.append(ControlFade(layer, "opacity", 1.0, 0.0, fade))
 
         super().__init__(events)

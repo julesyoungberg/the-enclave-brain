@@ -12,15 +12,16 @@ class OSCEvent:
     - done (bool): whether or not the event has finished.
     """
 
-    def __init__(self, address: str, duration=0.0):
+    def __init__(self, address: str, duration=0.0, debug=False):
         self.address = address
         self.duration = duration
         self.time = 0.0
         self.done = False
+        self.debug = debug
 
     def update(self, dt: float, value: float = None):
         if value is not None:
-            send_osc_message(self.address, value)
+            send_osc_message(self.address, value, debug=self.debug)
         self.time += dt
         if self.time > self.duration:
             self.done = True
