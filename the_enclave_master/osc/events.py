@@ -47,11 +47,8 @@ class OSCEventGroup(OSCEvent):
 
     def update(self):
         """Checks if all events are done and sets the done attribute of the parent class."""
-        done = True
-        for event in self.events:
-            if not event.done:
-                done = False
-        self.done = done
+        self.events = [e for e in self.events if not e.done]
+        self.done = len(self.events) == 0
 
 
 class OSCEventSequence(OSCEventGroup):

@@ -76,15 +76,15 @@ class LayerTransition(OSCEventSequence):
 
         is_one_shot = addresses.is_one_shot(layer, cue_bin, cue_index)
 
+        if fade > 0.0 and not prev_was_one_shot:
+            if use_mask:
+                events.append(ControlFade(layer, "mask_opacity", 0.5, 1.0, fade))
+            else:
+                events.append(ControlFade(layer, "opacity", 1.0, 0.0, fade))
+
         if is_one_shot:
             events.append(PlayOneShot(layer, cue_bin, cue_index))
         else:
-            if fade > 0.0 and not prev_was_one_shot:
-                if use_mask:
-                    events.append(ControlFade(layer, "mask_opacity", 0.5, 1.0, fade))
-                else:
-                    events.append(ControlFade(layer, "opacity", 1.0, 0.0, fade))
-
             events.append(
                 TriggerCue(
                     layer,
@@ -214,6 +214,8 @@ class PlayOneShot(OSCEventSequence):
 
         # make sure the layer is blank (blackout)
         events.append(TriggerCue(address=addresses.layer_blackout(layer)))
+
+        events.append(OSCSleepEvent(1.0))
 
         # set the opacity
         events.append(ControlFade(layer, "opacity", 0.0, 1.0, 0.0))
