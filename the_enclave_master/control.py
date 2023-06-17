@@ -5,9 +5,9 @@ import mido
 from .simulation import Simulation
 
 CONFIG_MAPPING = {
-    0: "polution",
-    1: "deforestation",
-    2: "new_trees",
+    0: "climate_change",
+    1: "human_activity",
+    2: "fate",
 }
 
 
