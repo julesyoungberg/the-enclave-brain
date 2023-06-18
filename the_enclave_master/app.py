@@ -6,10 +6,10 @@
 # - determines scene automations via randomized background and one hit cues
 # - and then sends out OSC via the event manager
 
-import random
 import threading
 
 from .control import control_loop
+from .layer_fx_control import LayerFXControl
 from .layer_randomizer import LayerRandomizer
 from .osc import addresses
 from .osc.events import OSCEventManager
@@ -62,17 +62,20 @@ class App:
         self.fg_randomizer = LayerRandomizer(
             self.event_manager, layer_type="fg", scene=SCENE_NAMES[self.scene]
         )
+        self.bg1_fx = LayerFXControl(self.event_manager, "bg1")
+        self.bg2_fx = LayerFXControl(self.event_manager, "bg2")
+        self.fg1_fx = LayerFXControl(self.event_manager, "fx1")
+        self.fg2_fx = LayerFXControl(self.event_manager, "fx2")
 
     def update(self, dt: float):
-        # randomly change scene for now
-        if random.uniform(0, 1) < 0.00005:
-            self.scene = (self.scene + 1) % len(SCENE_NAMES)
-            # @todo implement slow transition where fg changes first for 30 seconds or so
-            new_scene = SCENE_NAMES[self.scene]
-            self.bg_randomizer.scene = new_scene
-            self.fg_randomizer.scene = new_scene
-
         self.simulation.update(dt)
-        self.event_manager.update(dt)
+        self.bg_randomizer.scene = self.simulation.scene
+        self.fg_randomizer.scene = self.simulation.scene
+        self.bg1_fx.set_intensity(self.simulation.scene_intensity)
+        self.bg2_fx.set_intensity(self.simulation.scene_intensity)
+        self.fg1_fx.set_intensity(self.simulation.scene_intensity)
+        self.fg2_fx.set_intensity(self.simulation.scene_intensity)
+
         self.bg_randomizer.update(dt)
         self.fg_randomizer.update(dt)
+        self.event_manager.update(dt)

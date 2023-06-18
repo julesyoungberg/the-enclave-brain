@@ -17,10 +17,6 @@ SCENES = {
         ],
         "fg": ["storms", "fires", "falling_trees"],
     },
-    "storm_forest": {
-        "bg": ["storms", "rain"],
-        "fg": ["storms", "rain"],
-    },
     "burning_forest": {
         "bg": ["deforestation", "fires"],
         "fg": ["fires", "smoke"],
@@ -28,6 +24,10 @@ SCENES = {
     "dead_forest": {
         "bg": ["dead", "fires"],
         "fg": ["falling_trees", "fires", "storms"],
+    },
+    "storm_forest": {
+        "bg": ["storms"],
+        "fg": ["storms"],
     },
     "rain_forest": {
         "bg": ["mushrooms", "rain"],

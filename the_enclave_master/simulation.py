@@ -1,3 +1,4 @@
+import math
 from threading import Lock
 
 
@@ -18,23 +19,40 @@ class Simulation:
     Methods:
         - update_config(key: str, value: float) -> None: updates the value of a configuration parameter with a given key
         - update(dt: float) -> None: updates the simulation by one timestep
-        - get_scene() -> str: returns the current scene of the simulation
     """
 
     def __init__(self):
-        self.scene = "scene1"
+        self.scene = "healthy_forest"
+        self.forest_health = 1.0
         self.config = {
-            "climate_change": 0.0,  # this is a parameter controlling the impact of climate change
-            "human_activity": 0.0,  # this is a paramter controlling the impact of human activity which can be good or bad
-            "fate": 0.0,  # this is a parameter controlling the randomness of fx and events
+            # this is a parameter controlling the impact of climate change
+            "climate_change": {
+                "value": 0.0,
+                "prev_value": 0.0,
+                "weight": 1.0,
+            },
+            # this is a paramter controlling the impact of human activity which can be good or bad
+            "human_activity": {
+                "value": 0.0,
+                "prev_value": 0.0,
+                "weight": 1.0,
+            },
+            # this is a parameter controlling the randomness of fx and events
+            "fate": {
+                "value": 0.0,
+                "prev_value": 0.0,
+            },
         }
         self.events = ["rain", "storm", "reset"]
         self.lock = Lock()
+        self.event_till = None
+        self.current_time = 0.0
+        self.scene_intensity = 0.0
 
     def update_config(self, key: str, value: float):
         self.lock.acquire()
         print("Updating", key, "to", value)
-        self.config[key] = value
+        self.config[key]["value"] = value
         self.lock.release()
 
     def trigger_event(self, event: str):
@@ -44,17 +62,40 @@ class Simulation:
 
         if event == "rain" or event == "storm":
             print("triggering " + event)
-            # @todo trigger scene
+            self.scene = event
+            self.event_till = self.current_time + 10.0
 
         if event == "reset":
             print("reseting")
             # @todo reset time
 
     def update(self, dt: float):
+        self.current_time += dt
         self.lock.acquire()
-        # @todo update simulation by timestep
-        self.scene = "scene1"
+        self.forest_health += (
+            self.config["climate_change"]
+            * self.config["climate_change"]["weight"]
+            * -dt
+        )
+        self.forest_health += (
+            (1.0 - self.config["human_activity"])
+            * self.config["human_activity"]["weight"]
+            * dt
+        )
+        self.forest_health = math.min(1.0, math.max(0.0, self.forest_health))
+        scene_idx = (1.0 - self.forest_health) * 4.0
+        self.scene_intensity = math.factorial(scene_idx)
+        if self.event_till is not None:
+            if self.current_time >= self.event_till:
+                self.event_till = None
+        else:
+            self.scene = [
+                "healthy_forest",
+                "deforestation",
+                "burning_forest",
+                "dead_forest",
+            ][math.floor(scene_idx)]
+        # @todo set fx intensity based on distance to next scene
+        for control in ["climate_change", "human_activity", "fate"]:
+            self.config[control]["prev_value"] = self.config[control]["value"]
         self.lock.release()
-
-    def get_scene(self) -> str:
-        return self.scene
