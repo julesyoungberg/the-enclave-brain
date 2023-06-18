@@ -56,11 +56,11 @@ class Simulation:
         self.lock.release()
 
     def trigger_event(self, event: str):
-        self.lock.acquire()
         if event not in self.events:
             print("Received unknown event: " + event)
             return
 
+        self.lock.acquire()
         if event == "rain" or event == "storm":
             print("triggering " + event)
             self.scene = f"{event} forest"
