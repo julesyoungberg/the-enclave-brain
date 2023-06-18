@@ -64,7 +64,7 @@ class Simulation:
         if event == "rain" or event == "storm":
             print("triggering " + event)
             self.scene = f"{event} forest"
-            self.event_till = self.current_time + 10.0
+            self.event_till = self.current_time + 30.0
 
         if event == "reset":
             print("reseting")
