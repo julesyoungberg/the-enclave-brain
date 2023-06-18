@@ -76,6 +76,10 @@ class App:
         self.fg1_fx.set_intensity(self.simulation.scene_intensity)
         self.fg2_fx.set_intensity(self.simulation.scene_intensity)
 
+        self.event_manager.update(dt)
         self.bg_randomizer.update(dt)
         self.fg_randomizer.update(dt)
-        self.event_manager.update(dt)
+        self.bg1_fx.update(dt)
+        self.bg2_fx.update(dt)
+        self.fg1_fx.update(dt)
+        self.fg2_fx.update(dt)
