@@ -6,15 +6,30 @@ SCENES = {
         "bg": ["boreal", "fall", "mountains", "rainforest"],
         "fg": ["birds", "flowers"],
     },
-    "dying_forest": {
-        "bg": ["deforestation", "dry_pine", "smoke", "storms"],
-        "fg": ["falling_trees", "storms"],
+    "deforestation": {
+        "bg": [
+            "deforestation",
+            "dry_pine",
+            "pollution",
+            "industry",
+            "drought",
+            "roads",
+        ],
+        "fg": ["storms", "fires", "falling_trees"],
+    },
+    "storm_forest": {
+        "bg": ["storms", "rain"],
+        "fg": ["storms", "rain"],
+    },
+    "burning_forest": {
+        "bg": ["deforestation", "fires"],
+        "fg": ["fires", "smoke"],
     },
     "dead_forest": {
         "bg": ["dead", "fires"],
         "fg": ["falling_trees", "fires", "storms"],
     },
-    "recovering_forest": {
+    "rain_forest": {
         "bg": ["mushrooms", "rain"],
         "fg": ["mushrooms", "rain"],
     },
