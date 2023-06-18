@@ -56,6 +56,7 @@ class Simulation:
         self.lock.release()
 
     def trigger_event(self, event: str):
+        self.lock.acquire()
         if event not in self.events:
             print("Received unknown event: " + event)
             return
@@ -67,7 +68,10 @@ class Simulation:
 
         if event == "reset":
             print("reseting")
-            # @todo reset time
+            self.forest_health = 1.0
+            self.current_time = 0.0
+
+        self.lock.release()
 
     def update(self, dt: float):
         self.current_time += dt
@@ -78,7 +82,7 @@ class Simulation:
             * -dt
         )
         self.forest_health += (
-            (1.0 - self.config["human_activity"])
+            (0.5 - self.config["human_activity"])
             * self.config["human_activity"]["weight"]
             * dt
         )
