@@ -64,8 +64,8 @@ class App:
         )
         self.bg1_fx = LayerFXControl(self.event_manager, "bg1")
         self.bg2_fx = LayerFXControl(self.event_manager, "bg2")
-        self.fg1_fx = LayerFXControl(self.event_manager, "fx1")
-        self.fg2_fx = LayerFXControl(self.event_manager, "fx2")
+        self.fg1_fx = LayerFXControl(self.event_manager, "fg1")
+        self.fg2_fx = LayerFXControl(self.event_manager, "fg2")
 
     def update(self, dt: float):
         self.simulation.update(dt)

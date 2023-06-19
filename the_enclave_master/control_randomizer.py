@@ -1,4 +1,3 @@
-import math
 import random
 
 from .osc.events import OSCEventManager
@@ -32,17 +31,20 @@ class ControlRandomizer:
     def update(self, dt: float):
         self.time += dt
 
-        if self.current_event is not None and self.current_event.done:
+        if self.current_event is not None and not self.current_event.done:
             return
 
         start_value = self.end_value or self.min
         range = self.max - self.min
-        max = self.max - range * (1.0 - self.intensity)
-        min = self.min + range * self.intensity
-        range = max - min
-        self.end_value = math.max(
-            self.min,
-            self.min(self.max, start_value + random.random() * self.intensity * range),
+        # force stronger fx based on intensity
+        mx = self.max - range * 0.5 * (1.0 - self.intensity)
+        mn = self.min + range * 0.5 * self.intensity
+        range = mx - mn
+        self.end_value = max(
+            mn,
+            min(
+                mx, start_value + random.random() * (self.intensity * 0.5 + 0.5) * range
+            ),
         )
         fade_time = random.random() * 10.0 * (1.0 - self.intensity)
         self.current_event = ControlFade(

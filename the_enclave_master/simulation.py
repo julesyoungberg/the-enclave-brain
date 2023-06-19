@@ -128,14 +128,14 @@ class Simulation:
         forest_health = self.get_forest_health(dt)
         forest_health += self.event_forest_health_effect
         self.event_forest_health_effect = 0
-        forest_health = math.min(1.0, math.max(0.0, forest_health))
+        forest_health = min(1.0, max(0.0, forest_health))
         self.forest_health.add_value(forest_health)
 
         # compute scene and scene intensity
         scene_val = (1.0 - forest_health) * len(MAIN_SCENES)
         scene_idx = math.floor(scene_val)
         fate_value = self.config["fate"]["parameter"].get_current_value()
-        self.scene_intensity = math.min(1.0, scene_val - scene_idx + fate_value * 0.5)
+        self.scene_intensity = min(1.0, scene_val - scene_idx + fate_value * 0.5)
 
         # trigger events on fast control change
         self.trigger_event_on_velocity(

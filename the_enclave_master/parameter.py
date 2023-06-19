@@ -30,11 +30,11 @@ class Parameter:
 
     def add_value(self, value=None):
         if value is None:
-            self._values.insert(self._values[0])
+            self._values.insert(0, self._values[0])
         else:
-            self._values.insert(value)
+            self._values.insert(0, value)
         if len(self._values) > self.lookback + 1:
-            self._values = self._values[: self.lookback + 1]
+            self._values = self._values[: int(self.lookback) + 1]
 
     def update_value(self, value: float):
         self._values[0] = value
@@ -55,4 +55,4 @@ class Parameter:
         return np.std(self._values)
 
     def get_velocity(self):
-        return np.mean(self._values[:-1] - self._values[1:])
+        return np.mean(np.subtract(self._values[:-1], self._values[1:]))

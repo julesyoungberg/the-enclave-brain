@@ -1,3 +1,5 @@
+import datetime
+
 from . import addresses
 from .events import OSCEvent, OSCSleepEvent, OSCEventSequence, OSCEventStack
 
@@ -26,6 +28,7 @@ class OSCTransition(OSCEvent):
         value = self.end
         if self.duration > 0.0:
             value = (self.time / self.duration) * (self.end - self.start) + self.start
+        # print(f"address={self.address} value={value}")
         super().update(dt, value)
 
 
