@@ -3,8 +3,7 @@ from datetime import datetime
 import simpy
 
 from the_enclave_master.app import App
-
-TIME_STEP_SECONDS = 1.0 / 60.0
+from the_enclave_master.config import TIME_STEP_SECONDS
 
 
 def simulation_loop(app: App, env: simpy.Environment, tick: float):

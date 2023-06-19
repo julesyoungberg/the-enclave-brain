@@ -69,6 +69,7 @@ class App:
 
     def update(self, dt: float):
         self.simulation.update(dt)
+        # @todo try updating foreground a few or many seconds before bg?
         self.bg_randomizer.scene = self.simulation.scene
         self.fg_randomizer.scene = self.simulation.scene
         self.bg1_fx.set_intensity(self.simulation.scene_intensity)

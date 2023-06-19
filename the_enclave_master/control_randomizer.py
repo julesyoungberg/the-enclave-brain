@@ -30,7 +30,6 @@ class ControlRandomizer:
         self.end_value = None
 
     def update(self, dt: float):
-        # @todo make intensity force stronger fx rather than just stronger randomness
         self.time += dt
 
         if self.current_event is not None and self.current_event.done:
@@ -38,6 +37,9 @@ class ControlRandomizer:
 
         start_value = self.end_value or self.min
         range = self.max - self.min
+        max = self.max - range * (1.0 - self.intensity)
+        min = self.min + range * self.intensity
+        range = max - min
         self.end_value = math.max(
             self.min,
             self.min(self.max, start_value + random.random() * self.intensity * range),

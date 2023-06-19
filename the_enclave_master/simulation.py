@@ -1,5 +1,12 @@
 import math
 from threading import Lock
+import random
+
+from .config import STEPS_PER_SECOND
+from .parameter import Parameter
+from .scenes import MAIN_SCENES, EVENTS
+
+VELOCITY_THRESHOLD = 0.1  # needs testing
 
 
 class Simulation:
@@ -15,91 +22,141 @@ class Simulation:
         - scene (str): the current scene of the simulation
         - config (dict): a dictionary of configuration parameters and their corresponding values
         - lock (Lock): a threading lock used to prevent race conditions when updating the configuration
-
-    Methods:
-        - update_config(key: str, value: float) -> None: updates the value of a configuration parameter with a given key
-        - update(dt: float) -> None: updates the simulation by one timestep
     """
 
     def __init__(self):
         self.scene = "healthy_forest"
-        self.forest_health = 1.0
+        self.forest_health = Parameter(1.0, lookback=STEPS_PER_SECOND)
         self.config = {
             # this is a parameter controlling the impact of climate change
             "climate_change": {
-                "value": 0.0,
-                "prev_value": 0.0,
+                "parameter": Parameter(0.0, lookback=STEPS_PER_SECOND),
                 "weight": 1.0,
             },
             # this is a paramter controlling the impact of human activity which can be good or bad
             "human_activity": {
-                "value": 0.0,
-                "prev_value": 0.0,
+                "parameter": Parameter(0.5, lookback=STEPS_PER_SECOND),
                 "weight": 1.0,
             },
             # this is a parameter controlling the randomness of fx and events
             "fate": {
-                "value": 0.0,
-                "prev_value": 0.0,
+                "parameter": Parameter(0.0),
             },
         }
+        for param in self.config.keys():
+            self.config[param]["parameter"].add_value()
         self.events = ["rain", "storm", "reset"]
         self.lock = Lock()
         self.event_till = None
         self.current_time = 0.0
         self.scene_intensity = 0.0
+        self.event_forest_health_effect = 0.0
 
     def update_config(self, key: str, value: float):
+        """Updates a configuration parameter"""
         self.lock.acquire()
         print("Updating", key, "to", value)
-        self.config[key]["value"] = value
+        self.config[key]["value"].update_value(value)
         self.lock.release()
 
+    def handle_event(self, event: str, duration=30.0):
+        """Set scene to event and determine effect on forest health."""
+        self.scene = event
+        self.event_till = self.current_time + duration
+
+        if event == "climate_change" or event == "deforestation":
+            self.event_forest_health_effect = -0.1
+
+        if event == "storm_forest" and self.forest_health.get_current_value() < 0.77:
+            self.event_forest_health_effect = -0.1
+
+        if event == "rain_forest":
+            self.event_forest_health_effect = 0.1
+
     def trigger_event(self, event: str):
+        """Trigger a given event."""
         if event not in self.events:
             print("Received unknown event: " + event)
             return
 
         self.lock.acquire()
+
         if event == "rain" or event == "storm":
             print("triggering " + event)
-            self.scene = f"{event} forest"
-            self.event_till = self.current_time + 30.0
+            self.handle_event(f"{event}_forest")
 
         if event == "reset":
             print("reseting")
-            self.forest_health = 1.0
+            self.forest_health = Parameter(1.0, lookback=STEPS_PER_SECOND)
             self.current_time = 0.0
 
         self.lock.release()
 
-    def update(self, dt: float):
-        self.current_time += dt
-        self.lock.acquire()
-        self.forest_health += (
-            self.config["climate_change"]
+    def get_forest_health(self, dt: float):
+        """Computes the current forest health."""
+        forest_health = self.forest_health.get_current_value()
+        forest_health += (
+            self.config["climate_change"]["parameter"].get_current_value()
             * self.config["climate_change"]["weight"]
             * -dt
         )
-        self.forest_health += (
-            (0.5 - self.config["human_activity"])
+        forest_health += (
+            (0.5 - self.config["human_activity"]["parameter"].get_current_value())
             * self.config["human_activity"]["weight"]
             * dt
         )
-        self.forest_health = math.min(1.0, math.max(0.0, self.forest_health))
-        scene_idx = (1.0 - self.forest_health) * 4.0
-        self.scene_intensity = math.factorial(scene_idx)
+        return forest_health
+
+    def trigger_event_on_velocity(
+        self, event: str, param: Parameter, value_threshold=0.5
+    ):
+        """Triggers an event if the param experiences fast changes."""
+        value = param.get_current_value()
+        velocity = param.get_velocity()
+        if abs(velocity) > VELOCITY_THRESHOLD:
+            if value > (1.0 - value_threshold) and value > 0.0 and self.scene != event:
+                self.handle_event(event, 15)
+            elif value < value_threshold and value < 0.0 and self.scene == event:
+                self.event_till = None
+
+    def update(self, dt: float):
+        self.lock.acquire()
+
+        self.current_time += dt
+
+        # update forest health
+        forest_health = self.get_forest_health(dt)
+        forest_health += self.event_forest_health_effect
+        self.event_forest_health_effect = 0
+        forest_health = math.min(1.0, math.max(0.0, forest_health))
+        self.forest_health.add_value(forest_health)
+
+        # compute scene and scene intensity
+        scene_val = (1.0 - forest_health) * len(MAIN_SCENES)
+        scene_idx = math.floor(scene_val)
+        fate_value = self.config["fate"]["parameter"].get_current_value()
+        self.scene_intensity = math.min(1.0, scene_val - scene_idx + fate_value * 0.5)
+
+        # trigger events on fast control change
+        self.trigger_event_on_velocity(
+            "climate_change", self.config["climate_change"]["parameter"]
+        )
+        self.trigger_event_on_velocity(
+            "deforestation", self.config["human_activity"]["parameter"], 0.25
+        )
+
         if self.event_till is not None:
             if self.current_time >= self.event_till:
                 self.event_till = None
         else:
-            self.scene = [
-                "healthy_forest",
-                "deforestation",
-                "burning_forest",
-                "dead_forest",
-            ][math.floor(scene_idx)]
-        # @todo set fx intensity based on distance to next scene
-        for control in ["climate_change", "human_activity", "fate"]:
-            self.config[control]["prev_value"] = self.config[control]["value"]
+            fate_roll = random.random()
+            if fate_roll < fate_value * 0.0001:
+                event = EVENTS[random.randint(0, len(EVENTS) - 1)]
+                self.handle_event(event)
+            else:
+                self.scene = MAIN_SCENES[scene_idx]
+
+        for param in self.config.keys():
+            self.config[param]["parameter"].add_value()
+
         self.lock.release()
