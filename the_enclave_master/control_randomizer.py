@@ -39,11 +39,12 @@ class ControlRandomizer:
         # force stronger fx based on intensity
         mx = self.max - range * 0.5 * (1.0 - self.intensity)
         mn = self.min + range * 0.5 * self.intensity
-        range = mx - mn
+        range = (mx - mn) * (self.intensity * 0.5 + 0.25)
         self.end_value = max(
             mn,
             min(
-                mx, start_value + random.random() * (self.intensity * 0.5 + 0.5) * range
+                mx,
+                start_value + random.random() * range - range * 0.5,
             ),
         )
         fade_time = random.random() * 10.0 * (1.0 - self.intensity)

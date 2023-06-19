@@ -41,24 +41,32 @@ class LayerRandomizer:
             )
 
         prev_layer = self.current_layer
-        layer_index = random.randint(1, 2)
-        self.current_layer = f"{self.layer_type}{layer_index}"
-
         prev_bin = self.current_bin
-        bins = SCENES[self.scene][self.layer_type]
-        self.current_bin = bins[random.randint(0, len(bins) - 1)]
-
-        if self.current_bin not in MADMAPPER_CONFIG[self.current_layer]["cues"]:
-            if layer_index == 1:
-                self.current_layer = f"{self.layer_type}2"
-            else:
-                self.current_layer = f"{self.layer_type}1"
-
         prev_index = self.current_index
-        self.current_index = random.randint(
-            0,
-            len(MADMAPPER_CONFIG[self.current_layer]["cues"][self.current_bin]) - 1,
-        )
+
+        cues = []
+
+        for layer_index in range(2):
+            layer_name = self.layer_type + str(layer_index + 1)
+            bins = SCENES[self.scene][self.layer_type]
+            for bin in bins:
+                if bin not in MADMAPPER_CONFIG[layer_name]["cues"]:
+                    continue
+                for cue in MADMAPPER_CONFIG[layer_name]["cues"][bin]:
+                    cues.append(
+                        {
+                            "layer_index": layer_index + 1,
+                            "bin": bin,
+                            "cue": cue,
+                        }
+                    )
+
+        cue = cues[random.randint(0, len(cues) - 1)]
+
+        layer_index = cue["layer_index"]
+        self.current_layer = f"{self.layer_type}{layer_index}"
+        self.current_bin = cue["bin"]
+        self.current_indx = cue["cue"]
 
         if prev_layer is not None and prev_layer != self.current_layer:
             self.event_manager.add_event(

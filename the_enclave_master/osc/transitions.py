@@ -44,9 +44,10 @@ class ControlFade(OSCTransition):
         duration: float,
         debug=False,
     ):
-        print(
-            f"ControlFade: layer={layer}, control={control}, start={start}, end={end}, duration={duration}"
-        )
+        if control == "mask_opacity":
+            print(
+                f"ControlFade: layer={layer}, control={control}, start={start}, end={end}, duration={duration}"
+            )
         address = addresses.control(layer, control)
         super().__init__(address, start, end, duration, debug=debug)
 
@@ -157,10 +158,10 @@ class LayerSwitch(OSCEventSequence):
             if use_mask:
                 if not prev_was_one_shot:
                     swap_events.append(
-                        ControlFade(prev_layer, "mask_opacity", 0.7, 1.0, fade)
+                        ControlFade(prev_layer, "mask_opacity", 0.5, 1.0, fade)
                     )
                 swap_events.append(
-                    ControlFade(next_layer, "mask_opacity", 1.0, 0.7, fade)
+                    ControlFade(next_layer, "mask_opacity", 1.0, 0.5, fade)
                 )
 
         if len(swap_events) > 0:
