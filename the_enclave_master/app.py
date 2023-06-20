@@ -10,10 +10,10 @@ import threading
 
 from .control import control_loop
 from .layer_fx_control import LayerFXControl
-from .layer_randomizer import LayerRandomizer
+from .layer_controller import LayerController
 from .osc import addresses
 from .osc.events import OSCEventManager
-from .osc.transitions import OSCEventStack, TriggerCue
+from .osc.transitions import OSCEventStack, TriggerCue, ControlFade
 from .scenes import SCENES
 from .simulation import Simulation
 
@@ -24,18 +24,18 @@ SCENE_NAMES = list(SCENES.keys())
 
 class App:
     """
-    Main application class for running simulation and managing visual layer updates.
+    Represents the main application class of the program.
+    This class is responsible for managing the simulation, initiating the control thread and updating the layer controller's state.
 
     Attributes:
-        simulation (Simulation): The simulation instance used for updating the physics simulation.
-        event_manager (OSCEventManager): The event manager instance used for managing OSC events.
-        bg_randomizer (LayerRandomizer): The layer randomizer instance used for updating the background layer.
-        fg_randomizer (LayerRandomizer): The layer randomizer instance used for updating the foreground layer.
-        control_thread (Thread): The control thread instance used for running the control loop.
+        simulation (Simulation): Instance of the simulation class used to simulate different states.
+        control_thread (threading.Thread): Thread instance used to run the control loop function.
+        event_manager (OSCEventManager): The event manager used to manage and send events.
+        bg_controller (LayerController): Instance of LayerController class representing the background layer.
+        fg_controller (LayerController): Instance of LayerController class representing the foreground layer.
 
     Methods:
-        update(dt): Updates the simulation and visual layers, including randomly changing the scene.
-
+        update(dt: float): Updates the simulation, sets the scene and scene intensity for the background and foreground layer controller and updates all controllers with elapsed time 'dt'.
     """
 
     def __init__(self):
@@ -44,43 +44,64 @@ class App:
         self.control_thread.start()
 
         self.event_manager = OSCEventManager()
-        # black out every layer
+
+        # init reset - black out every layer and reset fx and masks
         self.event_manager.add_event(
             OSCEventStack(
                 [
-                    TriggerCue(address=addresses.layer_blackout(layer))
+                    OSCEventStack(
+                        [
+                            TriggerCue(address=addresses.layer_blackout(layer)),
+                            ControlFade(
+                                layer=layer,
+                                control="opacity",
+                                start=0.0,
+                                end=1.0,
+                                duration=0.0,
+                            ),
+                            *[
+                                ControlFade(
+                                    layer=layer,
+                                    control=control,
+                                    start=0.0,
+                                    end=0.0,
+                                    duration=0.0,
+                                )
+                                for control in [
+                                    "feedback_amount",
+                                    "feedback_fx_amount",
+                                    "fx_amount",
+                                    "mask_opacity",
+                                ]
+                            ],
+                        ]
+                    )
                     for layer in ["bg1", "bg2", "fg1", "fg2"]
                 ]
             )
         )
 
         # set initial scene and create layer randomizers
-        self.scene = 0
-        self.bg_randomizer = LayerRandomizer(
-            self.event_manager, layer_type="bg", scene=SCENE_NAMES[self.scene]
+        scene = SCENE_NAMES[0]
+        self.bg_controller = LayerController(
+            self.event_manager, layer_type="bg", scene=scene
         )
-        self.fg_randomizer = LayerRandomizer(
-            self.event_manager, layer_type="fg", scene=SCENE_NAMES[self.scene]
+        self.fg_controller = LayerController(
+            self.event_manager,
+            layer_type="fg",
+            scene=scene,
+            frequency=20.0,
         )
-        self.bg1_fx = LayerFXControl(self.event_manager, "bg1")
-        self.bg2_fx = LayerFXControl(self.event_manager, "bg2")
-        self.fg1_fx = LayerFXControl(self.event_manager, "fg1")
-        self.fg2_fx = LayerFXControl(self.event_manager, "fg2")
 
     def update(self, dt: float):
         self.simulation.update(dt)
+
         # @todo try updating foreground a few or many seconds before bg?
-        self.bg_randomizer.scene = self.simulation.scene
-        self.fg_randomizer.scene = self.simulation.scene
-        self.bg1_fx.set_intensity(self.simulation.scene_intensity)
-        self.bg2_fx.set_intensity(self.simulation.scene_intensity)
-        self.fg1_fx.set_intensity(self.simulation.scene_intensity)
-        self.fg2_fx.set_intensity(self.simulation.scene_intensity)
+        self.bg_controller.set_scene(self.simulation.scene)
+        self.fg_controller.set_scene(self.simulation.scene)
+        self.bg_controller.set_scene_intensity(self.simulation.scene_intensity)
+        self.fg_controller.set_scene_intensity(self.simulation.scene_intensity)
 
         self.event_manager.update(dt)
-        self.bg_randomizer.update(dt)
-        self.fg_randomizer.update(dt)
-        self.bg1_fx.update(dt)
-        self.bg2_fx.update(dt)
-        self.fg1_fx.update(dt)
-        self.fg2_fx.update(dt)
+        self.bg_controller.update(dt)
+        self.fg_controller.update(dt)

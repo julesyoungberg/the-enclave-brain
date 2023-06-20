@@ -13,7 +13,7 @@ EVENTS = ["climate_change", "deforestation", "rain_forest", "storm_forest"]
 SCENES = {
     "healthy_forest": {
         "bg": ["boreal", "forest", "mountains", "rainforest", "flowers", "summer"],
-        "fg": ["birds", "mushrooms", "rain"],
+        "fg": ["birds", "mushrooms"],
         "lights": ["green_and_blue"],
         "audio": [],
     },
