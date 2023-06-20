@@ -109,6 +109,7 @@ def layer_blackout(layer: str) -> str:
 
 
 def layer_cue(layer: str, bin: str, index: int) -> dict:
+    print(f"layer={layer}, bin={bin}, index={index}")
     return MADMAPPER_CONFIG[layer]["cues"][bin][index]
 
 

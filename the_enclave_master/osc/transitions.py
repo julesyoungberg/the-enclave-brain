@@ -104,6 +104,8 @@ class LayerTransition(OSCEventSequence):
                     events.append(ControlFade(layer, "mask_opacity", 1.0, 0.5, fade))
                 else:
                     events.append(ControlFade(layer, "opacity", 0.0, 1.0, fade))
+            else:
+                events.append(ControlFade(layer, "opacity", 0.0, 1.0, 0.0))
 
         super().__init__(events)
 
@@ -130,6 +132,7 @@ class LayerSwitch(OSCEventSequence):
         fade=6.0,
         use_mask=False,
         prev_was_one_shot=False,
+        fade_to_black=False,
     ):
         print(
             f"\nLayerSwitch: prev_layer={prev_layer}, next_layer={next_layer}, cue_bin={cue_bin}, cue_index={cue_index}, fade={fade}, use_mask={use_mask}"
@@ -151,7 +154,8 @@ class LayerSwitch(OSCEventSequence):
             if use_mask:
                 events.append(ControlFade(next_layer, "mask_opacity", 0.0, 1.0, 0.0))
 
-            events.append(ControlFade(next_layer, "opacity", 0.0, 0.5, fade))
+            if fade_to_black:
+                events.append(ControlFade(next_layer, "opacity", 0.0, 0.5, fade))
 
             swap_events.append(ControlFade(next_layer, "opacity", 0.5, 1.0, fade))
 
@@ -167,7 +171,7 @@ class LayerSwitch(OSCEventSequence):
         if len(swap_events) > 0:
             events.append(OSCEventStack(swap_events))
 
-        if not prev_was_one_shot:
+        if not prev_was_one_shot and fade_to_black:
             events.append(ControlFade(prev_layer, "opacity", 0.5, 0.0, fade))
 
         if is_one_shot:

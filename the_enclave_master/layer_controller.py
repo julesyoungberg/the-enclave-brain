@@ -1,9 +1,9 @@
 import random
 
 from .layer_fx_control import LayerFXControl
-from .osc.addresses import MADMAPPER_CONFIG, is_one_shot
-from .osc.events import OSCEventManager
-from .osc.transitions import LayerSwitch, LayerTransition
+from .osc.addresses import MADMAPPER_CONFIG, is_one_shot, layer_blackout
+from .osc.events import OSCEventManager, OSCEventSequence, OSCEventStack
+from .osc.transitions import LayerSwitch, LayerTransition, TriggerCue, ControlFade
 from .scenes import SCENES
 
 
@@ -24,7 +24,7 @@ class LayerController:
         frequency (float): The frequency at which the layer should be updated.
         prev_scene (str): The previous scene that was displayed.
         cues (list): The list of cues to use for transitioning between layers.
-        cue_idx (int): The current index of the cue being used for transitioning between layers.
+        cue_index (int): The current index of the cue being used for transitioning between layers.
         fx1_control (LayerFXControl): The LayerFXControl instance for the first layer.
         fx2_control (LayerFXControl): The LayerFXControl instance for the second layer.
 
@@ -51,10 +51,11 @@ class LayerController:
         self.time = 0.0
         self.frequency = frequency
         self.prev_scene = None
-        self.cues = []
-        self.cue_idx = 0
+        self.scene_cues = []
+        self.cue_index = 0
         self.fx1_control = LayerFXControl(event_manager, layer_type + "1")
         self.fx2_control = LayerFXControl(event_manager, layer_type + "2")
+        self.update_layer()
 
     def update_layer(self):
         # randomly select new layer and cue
@@ -68,9 +69,10 @@ class LayerController:
         prev_bin = self.current_bin
         prev_index = self.current_index
 
+        # if the scene has changed collect the new scene cues
         if self.scene != self.prev_scene:
             self.prev_scene = self.scene
-            self.cues = []
+            self.scene_cues = []
 
             for layer_index in range(2):
                 layer_name = self.layer_type + str(layer_index + 1)
@@ -78,22 +80,53 @@ class LayerController:
                 for bin in bins:
                     if bin not in MADMAPPER_CONFIG[layer_name]["cues"]:
                         continue
-                    for cue in MADMAPPER_CONFIG[layer_name]["cues"][bin]:
-                        self.cues.append(
+                    for cue in range(len(MADMAPPER_CONFIG[layer_name]["cues"][bin])):
+                        self.scene_cues.append(
                             {
                                 "layer_index": layer_index + 1,
                                 "bin": bin,
-                                "cue": cue,
+                                "cue_index": cue,
                             }
                         )
 
-        self.cue_idx = random.randint(0, len(self.cues) - 1)
-        cue = self.cues[self.cue_idx]
+        if (
+            self.current_layer is not None
+            and self.layer_type == "fg"
+            and "fg_blackout" in SCENES[self.scene]
+        ):
+            # randomly blackout layer if configured
+            if random.random() < SCENES[self.scene]["fg_blackout"]:
+                self.event_manager.add_event(
+                    OSCEventStack(
+                        [
+                            OSCEventSequence(
+                                [
+                                    ControlFade(
+                                        layer=layer,
+                                        control="opacity",
+                                        start=1.0,
+                                        end=0.0,
+                                        duration=3.0,
+                                    ),
+                                    TriggerCue(address=layer_blackout(layer)),
+                                ]
+                            )
+                            for layer in ["fg1", "fg2"]
+                        ]
+                    )
+                )
+                self.current_layer = None
+                return
+
+        # choose new cue
+        self.cue_index = random.randint(0, len(self.cues) - 1)
+        cue = self.scene_cues[self.cue_index]
         layer_index = cue["layer_index"]
         self.current_layer = f"{self.layer_type}{layer_index}"
         self.current_bin = cue["bin"]
-        self.current_indx = cue["cue"]
+        self.current_index = cue["cue_index"]
 
+        # transition to new cue as needed
         if prev_layer is not None and prev_layer != self.current_layer:
             self.event_manager.add_event(
                 LayerSwitch(
@@ -104,6 +137,7 @@ class LayerController:
                     fade=6.0,
                     use_mask=self.layer_type == "bg",
                     prev_was_one_shot=was_one_shot,
+                    fade_to_black=self.layer_type == "fg" and prev_layer is not None,
                 )
             )
         elif (

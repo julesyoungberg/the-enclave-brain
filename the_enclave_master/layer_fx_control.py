@@ -17,7 +17,7 @@ class LayerFXControl:
             event_manager, layer, "fx_amount", min=0.0, max=1.0
         )
         self.feedback_amount = ControlRandomizer(
-            event_manager, layer, "feedback_amount", min=0.0, max=0.75
+            event_manager, layer, "feedback_amount", min=0.0, max=0.33
         )
         self.feedback_fx_amount = ControlRandomizer(
             event_manager, layer, "feedback_fx_amount", min=0.0, max=1.0

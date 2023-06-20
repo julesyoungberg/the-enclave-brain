@@ -47,7 +47,7 @@ class ControlRandomizer:
                 start_value + random.random() * range - range * 0.5,
             ),
         )
-        fade_time = random.random() * 10.0 * (1.0 - self.intensity)
+        fade_time = random.random() * 10.0 * (1.0 - self.intensity * 0.5)
         self.current_event = ControlFade(
             self.layer, self.control, start_value, self.end_value, fade_time
         )

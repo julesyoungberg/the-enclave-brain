@@ -45,20 +45,13 @@ class App:
 
         self.event_manager = OSCEventManager()
 
-        # init reset - black out every layer and reset fx and masks
+        # initial reset - black out every layer and reset fx and masks
         self.event_manager.add_event(
             OSCEventStack(
                 [
                     OSCEventStack(
                         [
                             TriggerCue(address=addresses.layer_blackout(layer)),
-                            ControlFade(
-                                layer=layer,
-                                control="opacity",
-                                start=0.0,
-                                end=1.0,
-                                duration=0.0,
-                            ),
                             *[
                                 ControlFade(
                                     layer=layer,
@@ -72,6 +65,7 @@ class App:
                                     "feedback_fx_amount",
                                     "fx_amount",
                                     "mask_opacity",
+                                    "opacity",
                                 ]
                             ],
                         ]
@@ -97,10 +91,12 @@ class App:
         self.simulation.update(dt)
 
         # @todo try updating foreground a few or many seconds before bg?
+        # alternatively could separate foreground and background scenes for events
+        # foreground scenes for forest, rain, and fire could be scene as "light" versions
         self.bg_controller.set_scene(self.simulation.scene)
         self.fg_controller.set_scene(self.simulation.scene)
-        self.bg_controller.set_scene_intensity(self.simulation.scene_intensity)
-        self.fg_controller.set_scene_intensity(self.simulation.scene_intensity)
+        self.bg_controller.set_scene_intensity(0.9)
+        self.fg_controller.set_scene_intensity(0.9)
 
         self.event_manager.update(dt)
         self.bg_controller.update(dt)
