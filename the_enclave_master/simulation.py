@@ -31,12 +31,12 @@ class Simulation:
             # this is a parameter controlling the impact of climate change
             "climate_change": {
                 "parameter": Parameter(0.0, lookback=STEPS_PER_SECOND),
-                "weight": 1.0,
+                "weight": 0.01,
             },
             # this is a paramter controlling the impact of human activity which can be good or bad
             "human_activity": {
                 "parameter": Parameter(0.5, lookback=STEPS_PER_SECOND),
-                "weight": 1.0,
+                "weight": 0.01,
             },
             # this is a parameter controlling the randomness of fx and events
             "fate": {
@@ -115,7 +115,7 @@ class Simulation:
         velocity = param.get_velocity()
         if abs(velocity) > VELOCITY_THRESHOLD:
             if value > (1.0 - value_threshold) and value > 0.0 and self.scene != event:
-                self.handle_event(event, 15)
+                self.handle_event(event)
                 self.scene_intensity += 0.1
             elif value < value_threshold and value < 0.0 and self.scene == event:
                 self.event_till = None

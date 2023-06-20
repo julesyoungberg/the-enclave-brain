@@ -101,6 +101,7 @@ MADMAPPER_CONFIG = {
         },
         "controls": control_addresses("Background_1"),
     },
+    "lights": {},
 }
 
 
