@@ -14,7 +14,7 @@ SCENES = {
     "healthy_forest": {
         "bg": ["boreal", "forest", "mountains", "rainforest", "flowers", "summer"],
         "fg": ["birds", "mushrooms"],
-        "fg_blackout": 0.75,
+        "fg_blackout": 0.67,
         "lights": ["green_and_blue"],
         "audio": [],
     },

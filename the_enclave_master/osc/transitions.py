@@ -1,6 +1,7 @@
 import datetime
 
 from . import addresses
+from . import control_cache
 from .events import OSCEvent, OSCSleepEvent, OSCEventSequence, OSCEventStack
 
 
@@ -28,7 +29,7 @@ class OSCTransition(OSCEvent):
         value = self.end
         if self.duration > 0.0:
             value = (self.time / self.duration) * (self.end - self.start) + self.start
-        # print(f"address={self.address} value={value}")
+        control_cache.set_value(self.address, value)
         super().update(dt, value)
 
 
@@ -44,7 +45,7 @@ class ControlFade(OSCTransition):
         duration: float,
         debug=False,
     ):
-        if control == "mask_opacity":
+        if control == "opacity":
             print(
                 f"ControlFade: layer={layer}, control={control}, start={start}, end={end}, duration={duration}"
             )
@@ -71,7 +72,6 @@ class LayerTransition(OSCEventSequence):
         cue_index: int,
         use_mask=False,
         fade=0.0,
-        prev_was_one_shot=False,
     ):
         print(
             f"\nLayerTransition: layer={layer}, cue_bin={cue_bin}, cue_index={cue_index}, fade={fade}, use_mask={use_mask}"
@@ -80,11 +80,17 @@ class LayerTransition(OSCEventSequence):
 
         is_one_shot = addresses.is_one_shot(layer, cue_bin, cue_index)
 
-        if fade > 0.0 and not prev_was_one_shot:
+        current_opacity = control_cache.get_value(addresses.control(layer, "opacity"))
+        mask_opacity = control_cache.get_value(addresses.control(layer, "mask_opacity"))
+
+        if fade > 0.0 and current_opacity > 0.0:
             if use_mask:
-                events.append(ControlFade(layer, "mask_opacity", 0.5, 1.0, fade))
+                if mask_opacity < 1.0:
+                    events.append(
+                        ControlFade(layer, "mask_opacity", mask_opacity, 1.0, fade)
+                    )
             else:
-                events.append(ControlFade(layer, "opacity", 1.0, 0.0, fade))
+                events.append(ControlFade(layer, "opacity", current_opacity, 0.0, fade))
 
         if is_one_shot:
             events.append(PlayOneShot(layer, cue_bin, cue_index))
@@ -104,8 +110,8 @@ class LayerTransition(OSCEventSequence):
                     events.append(ControlFade(layer, "mask_opacity", 1.0, 0.5, fade))
                 else:
                     events.append(ControlFade(layer, "opacity", 0.0, 1.0, fade))
-            else:
-                events.append(ControlFade(layer, "opacity", 0.0, 1.0, 0.0))
+            elif current_opacity < 1.0:
+                events.append(ControlFade(layer, "opacity", current_opacity, 1.0, fade))
 
         super().__init__(events)
 
@@ -131,7 +137,6 @@ class LayerSwitch(OSCEventSequence):
         cue_index: int,
         fade=6.0,
         use_mask=False,
-        prev_was_one_shot=False,
         fade_to_black=False,
     ):
         print(
@@ -143,36 +148,77 @@ class LayerSwitch(OSCEventSequence):
 
         swap_events = []
 
-        if not prev_was_one_shot:
-            swap_events.append(ControlFade(prev_layer, "opacity", 1.0, 0.5, fade))
+        prev_layer_opacity = control_cache.get_value(
+            addresses.control(prev_layer, "opacity")
+        )
+        prev_layer_mask_opacity = control_cache.get_value(
+            addresses.control(prev_layer, "mask_opacity")
+        )
+        next_layer_opacity = control_cache.get_value(
+            addresses.control(next_layer, "opacity")
+        )
+        next_layer_mask_opacity = control_cache.get_value(
+            addresses.control(next_layer, "mask_opacity")
+        )
+
+        if prev_layer_opacity > 0.5:
+            swap_events.append(
+                ControlFade(prev_layer, "opacity", prev_layer_opacity, 0.5, fade)
+            )
+            prev_layer_opacity = 0.5
 
         is_one_shot = addresses.is_one_shot(next_layer, cue_bin, cue_index)
 
         if not is_one_shot:
             events.append(TriggerCue(next_layer, cue_bin, cue_index))
             events.append(OSCSleepEvent(6.0))
-            if use_mask:
-                events.append(ControlFade(next_layer, "mask_opacity", 0.0, 1.0, 0.0))
-
-            if fade_to_black:
-                events.append(ControlFade(next_layer, "opacity", 0.0, 0.5, fade))
-
-            swap_events.append(ControlFade(next_layer, "opacity", 0.5, 1.0, fade))
-
-            if use_mask:
-                if not prev_was_one_shot:
-                    swap_events.append(
-                        ControlFade(prev_layer, "mask_opacity", 0.5, 1.0, fade)
+            if use_mask and next_layer_mask_opacity < 1.0:
+                events.append(
+                    ControlFade(
+                        next_layer,
+                        "mask_opacity",
+                        next_layer_mask_opacity,
+                        1.0,
+                        3.0 if next_layer_opacity > 0.0 else 0.0,
                     )
-                swap_events.append(
-                    ControlFade(next_layer, "mask_opacity", 1.0, 0.5, fade)
                 )
+                next_layer_mask_opacity = 1.0
+
+            if fade_to_black and next_layer_opacity < 0.5:
+                events.append(
+                    ControlFade(next_layer, "opacity", next_layer_opacity, 0.5, fade)
+                )
+                next_layer_opacity = 0.5
+
+            swap_events.append(
+                ControlFade(next_layer, "opacity", next_layer_opacity, 1.0, fade)
+            )
+
+            if use_mask:
+                if prev_layer_mask_opacity < 1.0:
+                    swap_events.append(
+                        ControlFade(
+                            prev_layer, "mask_opacity", prev_layer_opacity, 1.0, fade
+                        )
+                    )
+                if next_layer_mask_opacity > 0.5:
+                    swap_events.append(
+                        ControlFade(
+                            next_layer,
+                            "mask_opacity",
+                            next_layer_mask_opacity,
+                            0.5,
+                            fade,
+                        )
+                    )
 
         if len(swap_events) > 0:
             events.append(OSCEventStack(swap_events))
 
-        if not prev_was_one_shot and fade_to_black:
-            events.append(ControlFade(prev_layer, "opacity", 0.5, 0.0, fade))
+        if prev_layer_opacity > 0.0 and fade_to_black:
+            events.append(
+                ControlFade(prev_layer, "opacity", prev_layer_opacity, 0.0, fade)
+            )
 
         if is_one_shot:
             events.append(PlayOneShot(next_layer, cue_bin, cue_index))

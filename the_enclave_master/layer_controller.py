@@ -1,7 +1,8 @@
 import random
 
 from .layer_fx_control import LayerFXControl
-from .osc.addresses import MADMAPPER_CONFIG, is_one_shot, layer_blackout
+from .osc import control_cache
+from .osc.addresses import MADMAPPER_CONFIG, is_one_shot, layer_blackout, control
 from .osc.events import OSCEventManager, OSCEventSequence, OSCEventStack
 from .osc.transitions import LayerSwitch, LayerTransition, TriggerCue, ControlFade
 from .scenes import SCENES
@@ -40,7 +41,7 @@ class LayerController:
         event_manager: OSCEventManager,
         scene="healthy_forest",
         layer_type="bg",
-        frequency=30.0,
+        frequency=40.0,
     ):
         self.event_manager = event_manager
         self.scene = scene
@@ -58,13 +59,6 @@ class LayerController:
         self.update_layer()
 
     def update_layer(self):
-        # randomly select new layer and cue
-        was_one_shot = False
-        if self.current_layer is not None:
-            was_one_shot = is_one_shot(
-                self.current_layer, self.current_bin, self.current_index
-            )
-
         prev_layer = self.current_layer
         prev_bin = self.current_bin
         prev_index = self.current_index
@@ -96,30 +90,29 @@ class LayerController:
         ):
             # randomly blackout layer if configured
             if random.random() < SCENES[self.scene]["fg_blackout"]:
-                self.event_manager.add_event(
-                    OSCEventStack(
-                        [
-                            OSCEventSequence(
-                                [
-                                    ControlFade(
-                                        layer=layer,
-                                        control="opacity",
-                                        start=1.0,
-                                        end=0.0,
-                                        duration=3.0,
-                                    ),
-                                    TriggerCue(address=layer_blackout(layer)),
-                                ]
-                            )
-                            for layer in ["fg1", "fg2"]
-                        ]
+                print(f"blacking out {self.layer_type}")
+                for i in [1, 2]:
+                    layer = f"{self.layer_type}{i}"
+                    current_opacity = control_cache.get_value(control(layer, "opacity"))
+                    self.event_manager.add_event(
+                        OSCEventSequence(
+                            [
+                                ControlFade(
+                                    layer=layer,
+                                    control="opacity",
+                                    start=current_opacity,
+                                    end=0.0,
+                                    duration=3.0 if current_opacity > 0.0 else 0.0,
+                                ),
+                                TriggerCue(address=layer_blackout(layer)),
+                            ]
+                        )
                     )
-                )
                 self.current_layer = None
                 return
 
         # choose new cue
-        self.cue_index = random.randint(0, len(self.cues) - 1)
+        self.cue_index = random.randint(0, len(self.scene_cues) - 1)
         cue = self.scene_cues[self.cue_index]
         layer_index = cue["layer_index"]
         self.current_layer = f"{self.layer_type}{layer_index}"
@@ -136,7 +129,6 @@ class LayerController:
                     self.current_index,
                     fade=6.0,
                     use_mask=self.layer_type == "bg",
-                    prev_was_one_shot=was_one_shot,
                     fade_to_black=self.layer_type == "fg" and prev_layer is not None,
                 )
             )
@@ -154,7 +146,6 @@ class LayerController:
                     fade=0.0
                     if self.layer_type == "bg" and prev_layer is not None
                     else 6.0,
-                    prev_was_one_shot=was_one_shot,
                 )
             )
 

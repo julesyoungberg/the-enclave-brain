@@ -84,7 +84,7 @@ class App:
             self.event_manager,
             layer_type="fg",
             scene=scene,
-            frequency=20.0,
+            frequency=30.0,
         )
 
     def update(self, dt: float):
