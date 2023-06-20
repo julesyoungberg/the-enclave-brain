@@ -115,7 +115,7 @@ class Simulation:
         velocity = param.get_velocity()
         if abs(velocity) > VELOCITY_THRESHOLD:
             if value > (1.0 - value_threshold) and value > 0.0 and self.scene != event:
-                self.handle_event(event)
+                self.handle_event(event, 30 * (1.0 + value))
                 self.scene_intensity += 0.1
             elif value < value_threshold and value < 0.0 and self.scene == event:
                 self.event_till = None
