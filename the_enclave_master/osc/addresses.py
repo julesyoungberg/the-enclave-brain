@@ -50,7 +50,7 @@ MADMAPPER_CONFIG = {
             "boreal": cues(1, 2),
             "dead": cues(7, 3),
             "deforestation": cues(10, 6),
-            "dry_pine": cues(13, 4),
+            "dry_pine": cues(13, 3),
             "fall": cues(16, 5),
             "falling_trees": cues(21, 1),
             "fires": cues(26, 10),
@@ -76,9 +76,9 @@ MADMAPPER_CONFIG = {
     "bg1": {
         "cues": {
             "boreal": cues(2, 1),
-            "dead": cues(8, 5),
+            "dead": cues(8, 4),
             "deforestation": cues(11, 7),
-            "dry_pine": cues(14, 2),
+            # "dry_pine": cues(14, 2),
             "fall": cues(17, 4),
             "falling_trees": cues(22, 1),
             "fires": cues(27, 9),
