@@ -26,7 +26,7 @@ class Simulation:
 
     def __init__(self):
         self.scene = "healthy_forest"
-        self.forest_health = Parameter(1.0, lookback=STEPS_PER_SECOND)
+        self.forest_health = Parameter(0.5, lookback=STEPS_PER_SECOND)
         self.config = {
             # this is a parameter controlling the impact of climate change
             "climate_change": {

@@ -9,17 +9,13 @@
 import threading
 
 from .control import control_loop
-from .layer_fx_control import LayerFXControl
 from .layer_controller import LayerController
 from .osc import addresses
 from .osc.events import OSCEventManager
 from .osc.transitions import OSCEventStack, TriggerCue, ControlFade
-from .scenes import SCENES
 from .simulation import Simulation
 
 TIME_STEP_SECONDS = 1.0 / 60.0
-
-SCENE_NAMES = list(SCENES.keys())
 
 
 class App:
@@ -76,28 +72,30 @@ class App:
         )
 
         # set initial scene and create layer randomizers
-        scene = "climate_change"  # SCENE_NAMES[0]
+        self.scene = self.simulation.scene
         self.bg_controller = LayerController(
-            self.event_manager, layer_type="bg", scene=scene
+            self.event_manager, layer_type="bg", scene=self.scene
         )
         self.fg_controller = LayerController(
             self.event_manager,
             layer_type="fg",
-            scene=scene,
+            scene=self.scene,
             frequency=30.0,
         )
 
     def update(self, dt: float):
         self.simulation.update(dt)
-
+        scene_changed = self.scene != self.simulation.scene
         # @todo try updating foreground a few or many seconds before bg?
         # alternatively could separate foreground and background scenes for events
         # foreground scenes for forest, rain, and fire could be scene as "light" versions
-        self.bg_controller.set_scene(self.simulation.scene)
-        self.fg_controller.set_scene(self.simulation.scene)
-        self.bg_controller.set_scene_intensity(0.9)
-        self.fg_controller.set_scene_intensity(0.9)
+        if scene_changed:
+            self.scene = self.simulation.scene
+            self.bg_controller.set_scene(self.simulation.scene)
+            self.fg_controller.set_scene(self.simulation.scene)
+        self.bg_controller.set_scene_intensity(self.simulation.scene_intensity)
+        self.fg_controller.set_scene_intensity(self.simulation.scene_intensity)
 
         self.event_manager.update(dt)
         self.bg_controller.update(dt)
-        self.fg_controller.update(dt)
+        self.fg_controller.update(dt, force=scene_changed)
