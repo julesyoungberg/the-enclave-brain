@@ -26,7 +26,8 @@ SCENES = {
     },
     "dead_forest": {
         "bg": ["dead"],
-        "fg": ["falling_trees", "fires", "storms"],
+        "fg": ["falling_trees", "storms", "smoke"],
+        "fg_blackout": 0.5,
         "lights": ["brown_and_gray"],
         "audio": [],
     },
@@ -43,7 +44,9 @@ SCENES = {
             "industry",
             "roads",
         ],
+        # @todo create more appropriate foreground cues from some of bg content
         "fg": ["storms", "falling_trees"],
+        "fg_blackout": 0.5,
         "lights": ["red_and_brown"],
         "audio": [],
     },

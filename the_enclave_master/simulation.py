@@ -133,6 +133,7 @@ class Simulation:
         self.forest_health.add_value(forest_health)
 
         # compute scene and scene intensity
+        # @todo apply log scale to scene idx?
         scene_val = (1.0 - forest_health) * len(MAIN_SCENES)
         scene_idx = math.floor(scene_val)
         fate_value = self.config["fate"]["parameter"].get_current_value()
