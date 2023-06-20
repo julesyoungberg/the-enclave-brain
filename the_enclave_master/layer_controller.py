@@ -56,6 +56,7 @@ class LayerController:
         self.cue_index = 0
         self.fx1_control = LayerFXControl(event_manager, layer_type + "1")
         self.fx2_control = LayerFXControl(event_manager, layer_type + "2")
+        self.current_event = None
         self.update_layer()
 
     def update_layer(self):
@@ -94,20 +95,19 @@ class LayerController:
                 for i in [1, 2]:
                     layer = f"{self.layer_type}{i}"
                     current_opacity = control_cache.get_value(control(layer, "opacity"))
-                    self.event_manager.add_event(
-                        OSCEventSequence(
-                            [
-                                ControlFade(
-                                    layer=layer,
-                                    control="opacity",
-                                    start=current_opacity,
-                                    end=0.0,
-                                    duration=3.0 if current_opacity > 0.0 else 0.0,
-                                ),
-                                TriggerCue(address=layer_blackout(layer)),
-                            ]
-                        )
+                    self.current_event = OSCEventSequence(
+                        [
+                            ControlFade(
+                                layer=layer,
+                                control="opacity",
+                                start=current_opacity,
+                                end=0.0,
+                                duration=3.0 if current_opacity > 0.0 else 0.0,
+                            ),
+                            TriggerCue(address=layer_blackout(layer)),
+                        ]
                     )
+                    self.event_manager.add_event(self.current_event)
                 self.current_layer = None
                 return
 
@@ -121,33 +121,29 @@ class LayerController:
 
         # transition to new cue as needed
         if prev_layer is not None and prev_layer != self.current_layer:
-            self.event_manager.add_event(
-                LayerSwitch(
-                    prev_layer,
-                    self.current_layer,
-                    self.current_bin,
-                    self.current_index,
-                    fade=6.0,
-                    use_mask=self.layer_type == "bg",
-                    fade_to_black=self.layer_type == "fg" and prev_layer is not None,
-                )
+            self.current_event = LayerSwitch(
+                prev_layer,
+                self.current_layer,
+                self.current_bin,
+                self.current_index,
+                fade=6.0,
+                use_mask=self.layer_type == "bg",
+                fade_to_black=self.layer_type == "fg" and prev_layer is not None,
             )
+            self.event_manager.add_event(self.current_event)
         elif (
             prev_layer is None
             or self.current_bin != prev_bin
             or self.current_index != prev_index
         ):
-            self.event_manager.add_event(
-                LayerTransition(
-                    self.current_layer,
-                    self.current_bin,
-                    self.current_index,
-                    # @todo consider taking this from the cue config - some foregrounds might not need the fade
-                    fade=0.0
-                    if self.layer_type == "bg" and prev_layer is not None
-                    else 6.0,
-                )
+            self.current_event = LayerTransition(
+                self.current_layer,
+                self.current_bin,
+                self.current_index,
+                # @todo consider taking this from the cue config - some foregrounds might not need the fade
+                fade=0.0 if self.layer_type == "bg" and prev_layer is not None else 6.0,
             )
+            self.event_manager.add_event(self.current_event)
 
     def set_scene(self, scene: str):
         self.scene = scene
@@ -156,12 +152,12 @@ class LayerController:
         self.fx1_control.set_intensity(scene_intensity)
         self.fx2_control.set_intensity(scene_intensity)
 
-    def update(self, dt: float):
+    def update(self, dt: float, force=False):
         self.fx1_control.update(dt)
         self.fx2_control.update(dt)
 
         self.time += dt
-        if self.time < self.frequency:
+        if not force and (self.time < self.frequency or not self.current_event.done):
             return
 
         self.time = 0.0

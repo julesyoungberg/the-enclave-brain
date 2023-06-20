@@ -76,7 +76,7 @@ class App:
         )
 
         # set initial scene and create layer randomizers
-        scene = SCENE_NAMES[0]
+        scene = "climate_change"  # SCENE_NAMES[0]
         self.bg_controller = LayerController(
             self.event_manager, layer_type="bg", scene=scene
         )
