@@ -1,4 +1,4 @@
-from .control_randomizer import ControlRandomizer
+from .fader_controller import FaderController
 from .osc.events import OSCEventManager
 
 
@@ -6,20 +6,20 @@ class LayerFXControl:
     """
     The LayerFXControl class manages the visualization of special effects on a given layer.
     It takes an OSCEventManager instance and the name of the layer as arguments at initialization.
-    The class also creates three ControlRandomizer instances for controlling the fx_amount, feedback_amount, and feedback_fx_amount attributes.
+    The class also creates three FaderController instances for controlling the fx_amount, feedback_amount, and feedback_fx_amount attributes.
 
-    The set_intensity method sets the intensity of the special effects, and the update method updates the status of the ControlRandomizer instances with a given delta time in seconds.
+    The set_intensity method sets the intensity of the special effects, and the update method updates the status of the FaderController instances with a given delta time in seconds.
 
     """
 
     def __init__(self, event_manager: OSCEventManager, layer: str):
-        self.fx_amount = ControlRandomizer(
+        self.fx_amount = FaderController(
             event_manager, layer, "fx_amount", min=0.0, max=1.0
         )
-        self.feedback_amount = ControlRandomizer(
+        self.feedback_amount = FaderController(
             event_manager, layer, "feedback_amount", min=0.0, max=0.33
         )
-        self.feedback_fx_amount = ControlRandomizer(
+        self.feedback_fx_amount = FaderController(
             event_manager, layer, "feedback_fx_amount", min=0.0, max=1.0
         )
 
