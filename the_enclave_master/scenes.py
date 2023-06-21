@@ -20,13 +20,13 @@ SCENES = {
     },
     "burning_forest": {
         "bg": ["fires"],
-        "fg": ["fires", "smoke"],
+        "fg": ["fires", "smoke"],  # , "falling_trees"],
         "lights": ["red_and_orange"],
         "audio": [],
     },
     "dead_forest": {
         "bg": ["dead"],
-        "fg": ["falling_trees", "storms", "smoke"],
+        "fg": ["storms", "smoke"],  # , "falling_trees"],
         "fg_blackout": 0.5,
         "lights": ["brown_and_gray"],
         "audio": [],
@@ -45,7 +45,7 @@ SCENES = {
             "roads",
         ],
         # @todo create more appropriate foreground cues from some of bg content
-        "fg": ["storms", "falling_trees"],
+        "fg": ["storms"],  # "falling_trees"],
         "fg_blackout": 0.5,
         "lights": ["red_and_brown"],
         "audio": [],

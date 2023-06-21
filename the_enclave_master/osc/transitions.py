@@ -142,8 +142,6 @@ class LayerSwitch(OSCEventSequence):
         print(
             f"\nLayerSwitch: prev_layer={prev_layer}, next_layer={next_layer}, cue_bin={cue_bin}, cue_index={cue_index}, fade={fade}, use_mask={use_mask}"
         )
-        # @todo set opacity before playing cue like in other transition?
-        # or maybe not since we blackout everything at init
         events = []
 
         swap_events = []

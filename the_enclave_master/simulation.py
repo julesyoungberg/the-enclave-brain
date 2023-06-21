@@ -25,8 +25,8 @@ class Simulation:
     """
 
     def __init__(self):
-        self.scene = "healthy_forest"
-        self.forest_health = Parameter(0.5, lookback=STEPS_PER_SECOND)
+        self.scene = MAIN_SCENES[0]
+        self.forest_health = Parameter(1.0, lookback=STEPS_PER_SECOND)
         self.config = {
             # this is a parameter controlling the impact of climate change
             "climate_change": {
@@ -133,11 +133,14 @@ class Simulation:
         self.forest_health.add_value(forest_health)
 
         # compute scene and scene intensity
-        # @todo apply log scale to scene idx?
-        scene_val = (1.0 - forest_health) * len(MAIN_SCENES)
-        scene_idx = math.floor(scene_val)
+        scene_val = 1.0 - forest_health
+        scene_intensity = scene_val / 0.5
+        if scene_intensity > 1.0:
+            scene_intensity = (scene_val - 0.5) / 0.3
+            if scene_intensity > 1.0:
+                scene_intensity = (scene_val - 0.8) / 0.2
         fate_value = self.config["fate"]["parameter"].get_current_value()
-        self.scene_intensity = min(1.0, scene_val - scene_idx + fate_value * 0.5)
+        self.scene_intensity = min(1.0, scene_intensity + fate_value * 0.5)
 
         # trigger events on fast control change
         self.trigger_event_on_velocity(
@@ -152,11 +155,16 @@ class Simulation:
                 self.event_till = None
         else:
             fate_roll = random.random()
-            if fate_roll < fate_value * 0.0001:
+            if fate_roll < fate_value * 0.1:
                 event = EVENTS[random.randint(0, len(EVENTS) - 1)]
                 self.handle_event(event)
             else:
-                self.scene = MAIN_SCENES[scene_idx]
+                if forest_health < 0.2:
+                    self.scene = MAIN_SCENES[2]
+                elif forest_health < 0.5:
+                    self.scene = MAIN_SCENES[1]
+                else:
+                    self.scene = MAIN_SCENES[0]
 
         for param in self.config.keys():
             self.config[param]["parameter"].add_value()
