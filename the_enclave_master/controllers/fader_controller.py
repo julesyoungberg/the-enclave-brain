@@ -1,7 +1,7 @@
 import random
 
-from .osc.events import OSCEventManager
-from .osc.transitions import ControlFade
+from ..osc.events import OSCEventManager
+from ..osc.transitions import ControlFade
 
 
 class FaderController:

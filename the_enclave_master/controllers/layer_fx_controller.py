@@ -1,5 +1,5 @@
 from .fader_controller import FaderController
-from .osc.events import OSCEventManager
+from ..osc.events import OSCEventManager
 
 
 class LayerFXController:

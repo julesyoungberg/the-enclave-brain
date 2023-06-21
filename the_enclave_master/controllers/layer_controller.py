@@ -1,11 +1,11 @@
 import random
 
 from .layer_fx_controller import LayerFXController
-from .osc import control_cache
-from .osc.addresses import MADMAPPER_CONFIG, is_one_shot, layer_blackout, control
-from .osc.events import OSCEventManager, OSCEventSequence, OSCEventStack
-from .osc.transitions import LayerSwitch, LayerTransition, TriggerCue, ControlFade
-from .scenes import SCENES
+from ..osc import control_cache
+from ..osc.addresses import MADMAPPER_CONFIG, is_one_shot, layer_blackout, control
+from ..osc.events import OSCEventManager, OSCEventSequence, OSCEventStack
+from ..osc.transitions import LayerSwitch, LayerTransition, TriggerCue, ControlFade
+from ..scenes import SCENES
 
 
 class LayerController:
