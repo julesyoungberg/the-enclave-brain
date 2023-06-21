@@ -1,6 +1,6 @@
 import random
 
-from .layer_fx_control import LayerFXControl
+from .layer_fx_controller import LayerFXController
 from .osc import control_cache
 from .osc.addresses import MADMAPPER_CONFIG, is_one_shot, layer_blackout, control
 from .osc.events import OSCEventManager, OSCEventSequence, OSCEventStack
@@ -26,8 +26,8 @@ class LayerController:
         prev_scene (str): The previous scene that was displayed.
         cues (list): The list of cues to use for transitioning between layers.
         cue_index (int): The current index of the cue being used for transitioning between layers.
-        fx1_control (LayerFXControl): The LayerFXControl instance for the first layer.
-        fx2_control (LayerFXControl): The LayerFXControl instance for the second layer.
+        fx1_controller(LayerFXController): The LayerFXController instance for the first layer.
+        fx2_controller(LayerFXController): The LayerFXController instance for the second layer.
 
     Methods:
         update_layer(): Updates the current layer based on the current scene and cues.
@@ -54,8 +54,8 @@ class LayerController:
         self.prev_scene = None
         self.scene_cues = []
         self.cue_index = 0
-        self.fx1_control = LayerFXControl(event_manager, layer_type + "1")
-        self.fx2_control = LayerFXControl(event_manager, layer_type + "2")
+        self.fx1_controller = LayerFXController(event_manager, layer_type + "1")
+        self.fx2_controller = LayerFXController(event_manager, layer_type + "2")
         self.current_event = None
         self.update_layer()
 
@@ -149,12 +149,12 @@ class LayerController:
         self.scene = scene
 
     def set_scene_intensity(self, scene_intensity: float):
-        self.fx1_control.set_intensity(scene_intensity)
-        self.fx2_control.set_intensity(scene_intensity)
+        self.fx1_controller.set_intensity(scene_intensity)
+        self.fx2_controller.set_intensity(scene_intensity)
 
     def update(self, dt: float, force=False):
-        self.fx1_control.update(dt)
-        self.fx2_control.update(dt)
+        self.fx1_controller.update(dt)
+        self.fx2_controller.update(dt)
 
         self.time += dt
         if not force and (self.time < self.frequency or not self.current_event.done):

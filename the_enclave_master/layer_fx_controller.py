@@ -2,9 +2,9 @@ from .fader_controller import FaderController
 from .osc.events import OSCEventManager
 
 
-class LayerFXControl:
+class LayerFXController:
     """
-    The LayerFXControl class manages the visualization of special effects on a given layer.
+    The LayerFXController class manages the visualization of special effects on a given layer.
     It takes an OSCEventManager instance and the name of the layer as arguments at initialization.
     The class also creates three FaderController instances for controlling the fx_amount, feedback_amount, and feedback_fx_amount attributes.
 
