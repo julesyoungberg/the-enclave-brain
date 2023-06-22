@@ -9,10 +9,9 @@
 import threading
 
 from .control import control_loop
-from .layer_controller import LayerController
-from .osc import addresses
+from .controllers.layer_controller import LayerController
+from .osc.reset import MADMAPPER_RESET_EVENT
 from .osc.events import OSCEventManager
-from .osc.transitions import OSCEventStack, TriggerCue, ControlFade
 from .simulation import Simulation
 
 TIME_STEP_SECONDS = 1.0 / 60.0
@@ -40,36 +39,7 @@ class App:
         self.control_thread.start()
 
         self.event_manager = OSCEventManager()
-
-        # initial reset - black out every layer and reset fx and masks
-        self.event_manager.add_event(
-            OSCEventStack(
-                [
-                    OSCEventStack(
-                        [
-                            TriggerCue(address=addresses.layer_blackout(layer)),
-                            *[
-                                ControlFade(
-                                    layer=layer,
-                                    control=control,
-                                    start=0.0,
-                                    end=0.0,
-                                    duration=0.0,
-                                )
-                                for control in [
-                                    "feedback_amount",
-                                    "feedback_fx_amount",
-                                    "fx_amount",
-                                    "mask_opacity",
-                                    "opacity",
-                                ]
-                            ],
-                        ]
-                    )
-                    for layer in ["bg1", "bg2", "fg1", "fg2"]
-                ]
-            )
-        )
+        self.event_manager.add_event(MADMAPPER_RESET_EVENT)
 
         # set initial scene and create layer randomizers
         self.scene = self.simulation.scene
@@ -77,18 +47,12 @@ class App:
             self.event_manager, layer_type="bg", scene=self.scene
         )
         self.fg_controller = LayerController(
-            self.event_manager,
-            layer_type="fg",
-            scene=self.scene,
-            frequency=30.0,
+            self.event_manager, layer_type="fg", scene=self.scene
         )
 
     def update(self, dt: float):
         self.simulation.update(dt)
         scene_changed = self.scene != self.simulation.scene
-        # @todo try updating foreground a few or many seconds before bg?
-        # alternatively could separate foreground and background scenes for events
-        # foreground scenes for forest, rain, and fire could be scene as "light" versions
         if scene_changed:
             self.scene = self.simulation.scene
             self.bg_controller.set_scene(self.simulation.scene)
@@ -96,6 +60,8 @@ class App:
         self.bg_controller.set_scene_intensity(self.simulation.scene_intensity)
         self.fg_controller.set_scene_intensity(self.simulation.scene_intensity)
 
-        self.event_manager.update(dt)
         self.bg_controller.update(dt)
         self.fg_controller.update(dt, force=scene_changed)
+
+        # update the event manager last since the controllers may have added events
+        self.event_manager.update(dt)

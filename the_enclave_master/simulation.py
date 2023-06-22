@@ -30,7 +30,7 @@ class Simulation:
         self.config = {
             # this is a parameter controlling the impact of climate change
             "climate_change": {
-                "parameter": Parameter(0.0, lookback=STEPS_PER_SECOND),
+                "parameter": Parameter(0.5, lookback=STEPS_PER_SECOND),
                 "weight": 0.01,
             },
             # this is a paramter controlling the impact of human activity which can be good or bad
@@ -40,7 +40,7 @@ class Simulation:
             },
             # this is a parameter controlling the randomness of fx and events
             "fate": {
-                "parameter": Parameter(0.0),
+                "parameter": Parameter(0.5),
             },
         }
         for param in self.config.keys():

@@ -15,26 +15,22 @@ SCENES = {
         "bg": ["boreal", "forest", "mountains", "rainforest", "flowers", "summer"],
         "fg": ["birds", "mushrooms"],
         "fg_blackout": 0.67,
-        "lights": ["green_and_blue"],
         "audio": [],
     },
     "burning_forest": {
         "bg": ["fires"],
         "fg": ["fires", "smoke"],  # , "falling_trees"],
-        "lights": ["red_and_orange"],
         "audio": [],
     },
     "dead_forest": {
         "bg": ["dead"],
         "fg": ["storms", "smoke"],  # , "falling_trees"],
         "fg_blackout": 0.5,
-        "lights": ["brown_and_gray"],
         "audio": [],
     },
     "climate_change": {
         "bg": ["dry_pine", "drought"],
         "fg": ["storms", "smoke", "fires"],
-        "lights": ["orange_and_gray"],
         "audio": [],
     },
     "deforestation": {
@@ -47,19 +43,16 @@ SCENES = {
         # @todo create more appropriate foreground cues from some of bg content
         "fg": ["storms"],  # "falling_trees"],
         "fg_blackout": 0.5,
-        "lights": ["red_and_brown"],
         "audio": [],
     },
     "rain_forest": {
-        "bg": ["mushrooms", "rain"],
+        "bg": ["mushrooms", "rain", "rainforest"],
         "fg": ["mushrooms", "rain"],
-        "lights": ["green_and_blue"],
         "audio": [],
     },
     "storm_forest": {
         "bg": ["storms"],
         "fg": ["storms"],
-        "lights": ["blue_and_purple"],
         "audio": [],
     },
 }

@@ -2,8 +2,12 @@ def cue(row: int, col: int, **opts):
     return {"address": f"/cues/selected/cues/by_cell/col_{col}/row_{row}", **opts}
 
 
-def cues(row: int, count: int, **opts):
-    return [cue(row, i + 1, **opts) for i in range(count)]
+def cues(row: int, count: int, start_column=1, **opts):
+    return [cue(row, i + start_column, **opts) for i in range(count)]
+
+
+def cues_column(col: int, count: int, start_row=1, **opts):
+    return [cue(i + start_row, col, **opts) for i in range(count)]
 
 
 def control_addresses(name: str):
@@ -101,7 +105,18 @@ MADMAPPER_CONFIG = {
         },
         "controls": control_addresses("Background_1"),
     },
-    "lights": {},
+    "lights": {
+        "content": cues(1, 4, start_column=11),
+        "colors:": {
+            "forest": cues_column(11, 3, start_row=2),
+            "burning_forest": cues_column(12, 3, start_row=2),
+            "dead_forest": cues_column(13, 3, start_row=2),
+            "climate_change": cues_column(14, 3, start_row=2),
+            "deforestation": cues_column(15, 3, start_row=2),
+            "rain_forest": cues_column(16, 3, start_row=2),
+            "storm_forest": cues_column(17, 3, start_row=2),
+        },
+    },
 }
 
 
