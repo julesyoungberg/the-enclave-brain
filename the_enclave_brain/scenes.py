@@ -5,6 +5,7 @@ MAIN_SCENES = [
     "healthy_forest",
     "burning_forest",
     "dead_forest",
+    "regrowth",
 ]
 
 EVENTS = ["climate_change", "deforestation", "rain_forest", "storm_forest"]
@@ -15,23 +16,19 @@ SCENES = {
         "bg": ["boreal", "forest", "mountains", "rainforest", "flowers", "summer"],
         "fg": ["birds", "mushrooms"],
         "fg_blackout": 0.67,
-        "audio": [],
     },
     "burning_forest": {
         "bg": ["fires"],
         "fg": ["fires", "smoke"],  # , "falling_trees"],
-        "audio": [],
     },
     "dead_forest": {
-        "bg": ["dead"],
+        "bg": ["dead", "deforestation"],
         "fg": ["storms", "smoke"],  # , "falling_trees"],
         "fg_blackout": 0.5,
-        "audio": [],
     },
     "climate_change": {
         "bg": ["dry_pine", "drought"],
         "fg": ["storms", "smoke", "fires"],
-        "audio": [],
     },
     "deforestation": {
         "bg": [
@@ -39,20 +36,23 @@ SCENES = {
             "pollution",
             "industry",
             "roads",
+            "logging",
         ],
         # @todo create more appropriate foreground cues from some of bg content
         "fg": ["storms"],  # "falling_trees"],
         "fg_blackout": 0.5,
-        "audio": [],
     },
     "rain_forest": {
-        "bg": ["mushrooms", "rain", "rainforest"],
-        "fg": ["mushrooms", "rain"],
-        "audio": [],
+        "bg": ["rain"],
+        "fg": ["rain"],
     },
     "storm_forest": {
         "bg": ["storms"],
         "fg": ["storms"],
-        "audio": [],
+    },
+    "regrowth": {
+        "bg": ["growth", "mushrooms"],
+        "fg": ["rain", "mushrooms"],
+        "fg_blackout": 0.5,
     },
 }

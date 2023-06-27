@@ -288,3 +288,32 @@ class PlayOneShot(OSCEventSequence):
         events.append(ControlFade(layer, "opacity", 1.0, 0.0, fade))
 
         super().__init__(events)
+
+
+class OSCFlicker(OSCEventSequence):
+    """
+    A class representing an OSC flicker event sequence.
+    Inherits from the OSCEventSequence base class.
+
+    Args:
+        address (str): The OSC address to send the flicker event to.
+        high (float): The initial value of the address.
+        low (float): The final value of the address.
+        period (float): The period of each flicker cycle.
+        n_flicks (int): The number of flicker cycles to repeat.
+        debug (bool): Indicates whether debug messages should be printed in the console.
+        
+    Attributes:
+        events (list): A list of OSCTransition objects representing the flicker events.
+    """
+
+    def __init__(
+        self, address: str, high: float, low: float, period: float, n_flicks: int, debug=False
+    ):
+        events = []
+
+        for _ in n_flicks:
+            events.append(OSCTransition(address, high, low, period / 2.0, debug=debug))
+            events.append(OSCTransition(address, low, high, period / 2.0, debug=debug))
+        
+        super().__init__(events)

@@ -61,7 +61,7 @@ MADMAPPER_CONFIG = {
             "flowers": cues(31, 5),
             "forest": cues(36, 2),
             "mountains": cues(39, 3),
-            "mushrooms": cues(44, 2),
+            "mushrooms": cues(44, 3),
             "rain": cues(49, 6),
             "rainforest": cues(52, 6),
             "smoke": cues(55, 7),
@@ -71,9 +71,11 @@ MADMAPPER_CONFIG = {
             "winter": cues(71, 5),
             "blackout": cue(74, 2),
             "drought": cues(78, 1),
-            "industry": cues(83, 4),
+            "industry": cues(83, 3),
             "pollution": cues(88, 1),
             "roads": cues(93, 2),
+            "growth": cues(98, 3),
+            "logging": cues(103, 2),
         },
         "controls": control_addresses("Background_2"),
     },
@@ -89,7 +91,7 @@ MADMAPPER_CONFIG = {
             "flowers": cues(32, 2),
             "forest": cues(37, 3),
             # "mountains": cues(40, 2),
-            "mushrooms": cues(45, 2),
+            "mushrooms": cues(45, 3),
             "rain": cues(50, 6),
             "rainforest": cues(53, 5),
             "smoke": cues(56, 6),
@@ -99,14 +101,16 @@ MADMAPPER_CONFIG = {
             "winter": cues(72, 6),
             "blackout": cue(74, 1),
             "drought": cues(79, 1),
-            "industry": cues(84, 6),
+            "industry": cues(84, 2),
             "pollution": cues(89, 1),
             "roads": cues(94, 2),
+            "growth": cues(99, 2),
+            "logging": cues(104, 4),
         },
         "controls": control_addresses("Background_1"),
     },
     "lights": {
-        "content": cues(1, 4, start_column=11),
+        "content": cues(1, 5, start_column=11),
         "colors:": {
             "forest": cues_column(11, 3, start_row=2),
             "burning_forest": cues_column(12, 3, start_row=2),
@@ -116,9 +120,17 @@ MADMAPPER_CONFIG = {
             "rain_forest": cues_column(16, 3, start_row=2),
             "storm_forest": cues_column(17, 3, start_row=2),
         },
+        "controls": {
+            "tube_brightness": "/fixtures/Light_Tubes/luminosity",
+            "lanterns1_brightness": "/fixtures/Drift_Wood_Lanterns/Drift_Wod_Lanterns_1/luminosity",
+            "lanterns2_brightness": "/fixtures/Drift_Wood_Lanterns/Drift_Wod_Lanterns_2/luminosity",
+        },
     },
 }
 
+
+def lights_control_address(light_control: str) -> str:
+    return MADMAPPER_CONFIG["lights"]["controls"][light_control]
 
 def layer_blackout(layer: str) -> str:
     return MADMAPPER_CONFIG[layer]["cues"]["blackout"]["address"]

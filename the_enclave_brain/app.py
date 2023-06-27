@@ -10,7 +10,8 @@ import threading
 
 from .control import control_loop
 from .controllers.layer_controller import LayerController
-from .osc.reset import MADMAPPER_RESET_EVENT
+from .controllers.lights_controller import LightsController
+from .osc.init import INIT_EVENT
 from .osc.events import OSCEventManager
 from .simulation import Simulation
 
@@ -39,7 +40,7 @@ class App:
         self.control_thread.start()
 
         self.event_manager = OSCEventManager()
-        self.event_manager.add_event(MADMAPPER_RESET_EVENT)
+        self.event_manager.add_event(INIT_EVENT)
 
         # set initial scene and create layer randomizers
         self.scene = self.simulation.scene
@@ -49,19 +50,27 @@ class App:
         self.fg_controller = LayerController(
             self.event_manager, layer_type="fg", scene=self.scene
         )
+        self.lights_controller = LightsController(
+            self.event_manager, scene=self.scene
+        )
 
     def update(self, dt: float):
+        # update scene first and pass scene data to controllers
         self.simulation.update(dt)
         scene_changed = self.scene != self.simulation.scene
         if scene_changed:
             self.scene = self.simulation.scene
             self.bg_controller.set_scene(self.simulation.scene)
             self.fg_controller.set_scene(self.simulation.scene)
+            self.lights_controller.set_scene(self.simulation.scene)
         self.bg_controller.set_scene_intensity(self.simulation.scene_intensity)
         self.fg_controller.set_scene_intensity(self.simulation.scene_intensity)
+        self.lights_controller.set_scene_intensity(self.simulation.scene_intensity)
 
+        # update controllers
         self.bg_controller.update(dt)
         self.fg_controller.update(dt, force=scene_changed)
+        self.lights_controller.update(dt)
 
         # update the event manager last since the controllers may have added events
         self.event_manager.update(dt)

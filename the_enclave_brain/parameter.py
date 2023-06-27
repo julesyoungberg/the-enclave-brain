@@ -15,7 +15,7 @@ class Parameter:
         _values (list): A list containing the parameter values.
 
     Methods:
-        add_value(value: float) -> None: Adds a new value to the parameter list and updates the lookback window if necessary.
+        update(value: float) -> None: Adds a new value to the parameter list and updates the lookback window if necessary.
         update_value(value: float) -> None: Updates the current parameter value.
         get_current_value() -> float: Returns the current parameter value.
         get_prev_value() -> float or None: Returns the previous parameter value if it exists, otherwise None.
@@ -28,7 +28,7 @@ class Parameter:
         self.lookback = lookback
         self._values = [initial_value]
 
-    def add_value(self, value=None):
+    def update(self, value=None):
         if value is None:
             self._values.insert(0, self._values[0])
         else:
@@ -56,3 +56,9 @@ class Parameter:
 
     def get_velocity(self):
         return np.mean(np.subtract(self._values[:-1], self._values[1:]))
+
+    def get_change(self):
+        if len(self._values) < 1:
+            return 0
+        
+        return self.get_current_value() - self.get_prev_value()
