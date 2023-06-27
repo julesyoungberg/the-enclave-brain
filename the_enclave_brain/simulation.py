@@ -52,6 +52,9 @@ class Simulation:
         self.scene_intensity = 0.0
         self.event_forest_health_effect = 0.0
 
+    def param(self, name: str):
+        return self.config[name]["parameter"]
+
     def update_config(self, key: str, value: float):
         """Updates a configuration parameter"""
         self.lock.acquire()
@@ -96,12 +99,12 @@ class Simulation:
         """Computes the current forest health."""
         forest_health = self.forest_health.get_current_value()
         forest_health += (
-            self.config["climate_change"]["parameter"].get_current_value()
+            self.param("climate_change").get_current_value()
             * self.config["climate_change"]["weight"]
             * -dt
         )
         forest_health += (
-            (0.5 - self.config["human_activity"]["parameter"].get_current_value())
+            (0.5 - self.param("human_activity").get_current_value())
             * self.config["human_activity"]["weight"]
             * dt
         )
@@ -121,8 +124,6 @@ class Simulation:
                 self.event_till = None
 
     def update_scene_data(self, dt: float):
-        self.current_time += dt
-
         # update forest health
         forest_health = self.get_forest_health(dt)
         forest_health += self.event_forest_health_effect
@@ -137,7 +138,7 @@ class Simulation:
             scene_intensity = (scene_val - 0.5) / 0.3
             if scene_intensity > 1.0:
                 scene_intensity = (scene_val - 0.8) / 0.2
-        fate_value = self.config["fate"]["parameter"].get_current_value()
+        fate_value = self.param("fate").get_current_value()
         self.scene_intensity = min(1.0, scene_intensity + fate_value * 0.5)
 
     def trigger_events(self):
@@ -146,10 +147,10 @@ class Simulation:
 
         # trigger events on fast control change
         self.trigger_event_on_velocity(
-            "climate_change", self.config["climate_change"]["parameter"]
+            "climate_change", self.param("climate_change")
         )
         self.trigger_event_on_velocity(
-            "deforestation", self.config["human_activity"]["parameter"], 0.25
+            "deforestation", self.param("human_activity"), 0.25
         )
 
     def set_main_scene(self):
@@ -169,6 +170,8 @@ class Simulation:
     def update(self, dt: float):
         self.lock.acquire()
 
+        self.current_time += dt
+
         self.update_scene_data(dt)
 
         self.trigger_events()
@@ -178,7 +181,7 @@ class Simulation:
                 self.event_till = None
         else:
             # trigger random events based on fate
-            fate_value = self.config["fate"]["parameter"].get_current_value()
+            fate_value = self.param("fate").get_current_value()
             fate_roll = random.random()
             if fate_roll < fate_value * 0.1:
                 event = EVENTS[random.randint(0, len(EVENTS) - 1)]
@@ -187,6 +190,6 @@ class Simulation:
                 self.set_main_scene()
 
         for param in self.config.keys():
-            self.config[param]["parameter"].update()
+            self.param(param).update()
 
         self.lock.release()

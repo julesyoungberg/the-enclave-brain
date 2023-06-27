@@ -62,3 +62,6 @@ class Parameter:
             return 0
         
         return self.get_current_value() - self.get_prev_value()
+
+    def has_changed(self):
+        return self.get_change() != 0.0

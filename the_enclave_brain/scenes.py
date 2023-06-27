@@ -26,6 +26,11 @@ SCENES = {
         "fg": ["storms", "smoke"],  # , "falling_trees"],
         "fg_blackout": 0.5,
     },
+    "regrowth": {
+        "bg": ["growth", "mushrooms"],
+        "fg": ["rain", "mushrooms"],
+        "fg_blackout": 0.5,
+    },
     "climate_change": {
         "bg": ["dry_pine", "drought"],
         "fg": ["storms", "smoke", "fires"],
@@ -49,10 +54,5 @@ SCENES = {
     "storm_forest": {
         "bg": ["storms"],
         "fg": ["storms"],
-    },
-    "regrowth": {
-        "bg": ["growth", "mushrooms"],
-        "fg": ["rain", "mushrooms"],
-        "fg_blackout": 0.5,
     },
 }

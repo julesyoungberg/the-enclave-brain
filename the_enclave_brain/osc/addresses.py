@@ -115,15 +115,18 @@ MADMAPPER_CONFIG = {
             "forest": cues_column(11, 3, start_row=2),
             "burning_forest": cues_column(12, 3, start_row=2),
             "dead_forest": cues_column(13, 3, start_row=2),
+            "regrowth": cues_column(11, 3, start_row=2), # @todo find different colors
             "climate_change": cues_column(14, 3, start_row=2),
             "deforestation": cues_column(15, 3, start_row=2),
             "rain_forest": cues_column(16, 3, start_row=2),
             "storm_forest": cues_column(17, 3, start_row=2),
         },
         "controls": {
-            "tube_brightness": "/fixtures/Light_Tubes/luminosity",
-            "lanterns1_brightness": "/fixtures/Drift_Wood_Lanterns/Drift_Wod_Lanterns_1/luminosity",
-            "lanterns2_brightness": "/fixtures/Drift_Wood_Lanterns/Drift_Wod_Lanterns_2/luminosity",
+            "tubes1_brightness": "/modules/TUBES_1_BRIGHTNESS/Inputs/Input_1",
+            "tubes2_brightness": "/modules/TUBES_2_BRIGHTNESS/Inputs/Input_1",
+            "tubes3_brightness": "/modules/TUBES_3_BRIGHTNESS/Inputs/Input_1",
+            "lanterns1_brightness": "/modules/LANTERNS_1_BRIGHTNESS/Inputs/Input_1",
+            "lanterns2_brightness": "/modules/LANTERNS_2_BRIGHTNESS/Inputs/Input_1",
         },
     },
 }

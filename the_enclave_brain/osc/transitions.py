@@ -308,7 +308,7 @@ class OSCFlicker(OSCEventSequence):
     """
 
     def __init__(
-        self, address: str, high: float, low: float, period: float, n_flicks: int, debug=False
+        self, address: str, high=1.0, low=0.0, period=1.0, n_flicks=1, debug=False
     ):
         events = []
 

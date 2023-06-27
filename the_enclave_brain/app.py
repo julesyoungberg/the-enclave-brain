@@ -11,6 +11,7 @@ import threading
 from .control import control_loop
 from .controllers.layer_controller import LayerController
 from .controllers.lights_controller import LightsController
+from .controllers.light_flicker_controller import LightFlickerController
 from .osc.init import INIT_EVENT
 from .osc.events import OSCEventManager
 from .simulation import Simulation
@@ -53,6 +54,9 @@ class App:
         self.lights_controller = LightsController(
             self.event_manager, scene=self.scene
         )
+        self.light_flicker_controller = LightFlickerController(
+            self.event_manager, self.simulation
+        )
 
     def update(self, dt: float):
         # update scene first and pass scene data to controllers
@@ -71,6 +75,7 @@ class App:
         self.bg_controller.update(dt)
         self.fg_controller.update(dt, force=scene_changed)
         self.lights_controller.update(dt)
+        self.light_flicker_controller.update(dt)
 
         # update the event manager last since the controllers may have added events
         self.event_manager.update(dt)
