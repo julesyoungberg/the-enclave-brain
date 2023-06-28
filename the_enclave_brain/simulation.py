@@ -4,7 +4,7 @@ import random
 
 from .config import STEPS_PER_SECOND
 from .parameter import Parameter
-from .scenes import MAIN_SCENES, EVENTS
+from .scenes import MAIN_SCENES, EVENTS, SCENES
 
 VELOCITY_THRESHOLD = 0.1  # needs testing
 
@@ -43,9 +43,6 @@ class Simulation:
                 "parameter": Parameter(0.5),
             },
         }
-        for param in self.config.keys():
-            self.config[param]["parameter"].update()
-        self.events = ["rain", "storm", "reset"]
         self.lock = Lock()
         self.event_till = None
         self.current_time = 0.0
@@ -53,6 +50,7 @@ class Simulation:
         self.event_forest_health_effect = 0.0
 
     def param(self, name: str):
+        """Helper for retrieving config params"""
         return self.config[name]["parameter"]
 
     def update_config(self, key: str, value: float):
@@ -64,6 +62,9 @@ class Simulation:
 
     def handle_event(self, event: str, duration=30.0):
         """Set scene to event and determine effect on forest health."""
+        if event not in SCENES:
+            return
+
         self.scene = event
         self.event_till = self.current_time + duration
 
@@ -78,20 +79,13 @@ class Simulation:
 
     def trigger_event(self, event: str):
         """Trigger a given event."""
-        if event not in self.events:
-            print("Received unknown event: " + event)
-            return
-
         self.lock.acquire()
 
-        if event == "rain" or event == "storm":
-            print("triggering " + event)
-            self.handle_event(f"{event}_forest")
-
         if event == "reset":
-            print("reseting")
             self.forest_health = Parameter(1.0, lookback=STEPS_PER_SECOND)
             self.current_time = 0.0
+        else:
+            self.handle_event(event)
 
         self.lock.release()
 
@@ -110,21 +104,8 @@ class Simulation:
         )
         return forest_health
 
-    def trigger_event_on_velocity(
-        self, event: str, param: Parameter, value_threshold=0.5
-    ):
-        """Triggers an event if the param experiences fast changes."""
-        value = param.get_current_value()
-        velocity = param.get_velocity()
-        if abs(velocity) > VELOCITY_THRESHOLD:
-            if value > (1.0 - value_threshold) and value > 0.0 and self.scene != event:
-                self.handle_event(event, 30 * (1.0 + value))
-                self.scene_intensity += 0.1
-            elif value < value_threshold and value < 0.0 and self.scene == event:
-                self.event_till = None
-
     def update_scene_data(self, dt: float):
-        # update forest health
+        """Updates forest health and scene intensity"""
         forest_health = self.get_forest_health(dt)
         forest_health += self.event_forest_health_effect
         self.event_forest_health_effect = 0
@@ -141,7 +122,24 @@ class Simulation:
         fate_value = self.param("fate").get_current_value()
         self.scene_intensity = min(1.0, scene_intensity + fate_value * 0.5)
 
-    def trigger_events(self):
+    def trigger_event_on_velocity(
+        self, event: str, param: Parameter, value_threshold=0.5
+    ):
+        """Triggers an event if the param experiences fast changes."""
+        value = param.get_current_value()
+        velocity = param.get_velocity()
+        if abs(velocity) > VELOCITY_THRESHOLD:
+            if value > (1.0 - value_threshold) and value > 0.0 and self.scene != event:
+                self.handle_event(event, 30 * (1.0 + value))
+                self.scene_intensity += 0.1
+            elif value < value_threshold and value < 0.0 and self.scene == event:
+                self.event_till = None
+    
+    def trigger_probability_event(self, event: str):
+        """Triggers an event randomly based on cthe param value."""
+
+    def trigger_velocity_events(self):
+        """Triggers events based on parameter velocity."""
         if self.event_till is not None:
             return
 
@@ -153,7 +151,30 @@ class Simulation:
             "deforestation", self.param("human_activity"), 0.25
         )
 
+    def trigger_probability_events(self):
+        """Triggers events based on probability"""
+        if self.event_till is not None:
+            return
+        
+        # @todo
+
+    def trigger_fate_events(self):
+        """Triggers events randomly based on fate."""
+        if self.event_till is not None:
+            return
+        
+        # trigger random events based on fate
+        fate_value = self.param("fate").get_current_value()
+        fate_roll = random.random()
+        if fate_roll >= fate_value * 0.1:
+            event = EVENTS[random.randint(0, len(EVENTS) - 1)]
+            self.handle_event(event)
+
     def set_main_scene(self):
+        """Sets the main scene if there is no current event"""
+        if self.event_till is not None:
+            return
+
         # trigger time based scenes
         forest_health = self.forest_health.get_current_value()
         health_change = self.forest_health.get_change()
@@ -167,29 +188,31 @@ class Simulation:
         else:
             self.scene = MAIN_SCENES[0]
 
+    def commit_config_params(self):
+        """Saves current config params for the current frame."""
+        for param in self.config.keys():
+            self.param(param).update()
+
     def update(self, dt: float):
+        """Main simulation update logic."""
         self.lock.acquire()
 
         self.current_time += dt
 
-        self.update_scene_data(dt)
-
-        self.trigger_events()
-
         if self.event_till is not None:
             if self.current_time >= self.event_till:
                 self.event_till = None
-        else:
-            # trigger random events based on fate
-            fate_value = self.param("fate").get_current_value()
-            fate_roll = random.random()
-            if fate_roll < fate_value * 0.1:
-                event = EVENTS[random.randint(0, len(EVENTS) - 1)]
-                self.handle_event(event)
-            else:
-                self.set_main_scene()
 
-        for param in self.config.keys():
-            self.param(param).update()
+        self.update_scene_data(dt)
+
+        self.trigger_velocity_events()
+
+        self.trigger_probability_events()
+
+        self.trigger_fate_events()
+
+        self.set_main_scene()
+
+        self.commit_config_params()
 
         self.lock.release()
