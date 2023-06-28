@@ -49,7 +49,7 @@ class Simulation:
         self.scene_intensity = 0.0
         self.event_forest_health_effect = 0.0
 
-    def param(self, name: str):
+    def param(self, name: str) -> Parameter:
         """Helper for retrieving config params"""
         return self.config[name]["parameter"]
 
@@ -129,14 +129,11 @@ class Simulation:
         value = param.get_current_value()
         velocity = param.get_velocity()
         if abs(velocity) > VELOCITY_THRESHOLD:
-            if value > (1.0 - value_threshold) and value > 0.0 and self.scene != event:
+            if value > value_threshold and self.scene != event:
                 self.handle_event(event, 30 * (1.0 + value))
                 self.scene_intensity += 0.1
-            elif value < value_threshold and value < 0.0 and self.scene == event:
+            elif value < value_threshold and self.scene == event:
                 self.event_till = None
-    
-    def trigger_probability_event(self, event: str):
-        """Triggers an event randomly based on cthe param value."""
 
     def trigger_velocity_events(self):
         """Triggers events based on parameter velocity."""
@@ -148,27 +145,40 @@ class Simulation:
             "climate_change", self.param("climate_change")
         )
         self.trigger_event_on_velocity(
-            "deforestation", self.param("human_activity"), 0.25
+            "deforestation", self.param("human_activity"), 0.75
         )
 
-    def trigger_probability_events(self):
-        """Triggers events based on probability"""
-        if self.event_till is not None:
-            return
-        
-        # @todo
+    def trigger_probability_event(self, event: str, param: Parameter, roll: float):
+        """Trigger event based on param probability and roll"""
+        value = param.get_current_value() * 0.001
+        if roll < value:
+            self.handle_event(event)
+            return 0.0
+
+        return roll - value
 
     def trigger_fate_events(self):
         """Triggers events randomly based on fate."""
         if self.event_till is not None:
             return
-        
+
         # trigger random events based on fate
-        fate_value = self.param("fate").get_current_value()
+        fate_value = self.param("fate").get_current_value() * 0.01
         fate_roll = random.random()
-        if fate_roll >= fate_value * 0.1:
+        if fate_roll < fate_value:
             event = EVENTS[random.randint(0, len(EVENTS) - 1)]
             self.handle_event(event)
+            return
+        else:
+            fate_roll -= fate_value
+
+        fate_roll = self.trigger_probability_event(
+            "climate_change", self.param("climate_change"), fate_roll
+        )
+
+        self.trigger_probability_event(
+            "deforestation", self.param("human_activity"), fate_roll
+        )
 
     def set_main_scene(self):
         """Sets the main scene if there is no current event"""
@@ -190,7 +200,9 @@ class Simulation:
 
     def commit_config_params(self):
         """Saves current config params for the current frame."""
+        print("\n\n")
         for param in self.config.keys():
+            print(f"commiting {param}: {self.param(param).get_current_value()}")
             self.param(param).update()
 
     def update(self, dt: float):
@@ -207,12 +219,24 @@ class Simulation:
 
         self.trigger_velocity_events()
 
-        self.trigger_probability_events()
-
         self.trigger_fate_events()
 
         self.set_main_scene()
 
         self.commit_config_params()
 
+        # @todo remove
+        self.randomize_config_params()
+
         self.lock.release()
+
+    def randomize_config_params(self):
+        """Randomize config params for testing"""
+        for param_name in self.config:
+            roll = random.random()
+            if roll < 0.01:
+                param = self.param(param_name)
+                value = param.get_current_value()
+                change = (random.random() - 0.5) * 0.1
+                next_value = min(1.0, max(0.0, value + change))
+                param.update_value(next_value)

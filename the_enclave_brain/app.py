@@ -70,6 +70,7 @@ class App:
         # update controller discrete scene data when needed
         if scene_changed:
             self.scene = self.simulation.scene
+            print("\nSCENE CHANGED:", self.scene)
             self.bg_controller.set_scene(self.simulation.scene)
             self.fg_controller.set_scene(self.simulation.scene)
             self.lights_controller.set_scene(self.simulation.scene)
