@@ -59,14 +59,22 @@ class App:
         )
 
     def update(self, dt: float):
-        # update scene first and pass scene data to controllers
+        # update light flicker controller before because it checks if params have changed
+        self.light_flicker_controller.update(dt)
+
+        # update simulation - computes scene data and 'commits' params
         self.simulation.update(dt)
+
         scene_changed = self.scene != self.simulation.scene
+
+        # update controller discrete scene data when needed
         if scene_changed:
             self.scene = self.simulation.scene
             self.bg_controller.set_scene(self.simulation.scene)
             self.fg_controller.set_scene(self.simulation.scene)
             self.lights_controller.set_scene(self.simulation.scene)
+        
+        # update controller continuous scene data every frame
         self.bg_controller.set_scene_intensity(self.simulation.scene_intensity)
         self.fg_controller.set_scene_intensity(self.simulation.scene_intensity)
         self.lights_controller.set_scene_intensity(self.simulation.scene_intensity)
@@ -75,7 +83,6 @@ class App:
         self.bg_controller.update(dt)
         self.fg_controller.update(dt, force=scene_changed)
         self.lights_controller.update(dt)
-        self.light_flicker_controller.update(dt)
 
         # update the event manager last since the controllers may have added events
         self.event_manager.update(dt)
