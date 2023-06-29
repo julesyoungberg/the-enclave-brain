@@ -310,9 +310,12 @@ class OSCFlicker(OSCEventSequence):
     def __init__(
         self, address: str, high=1.0, low=0.0, period=1.0, n_flicks=1, debug=False
     ):
+        # print(
+        #     f"OSCFlicker address={address}, high={high}, low={low}, period={period}, n_flicks={n_flicks}"
+        # )
         events = []
 
-        for _ in n_flicks:
+        for _ in range(n_flicks):
             events.append(OSCTransition(address, high, low, period / 2.0, debug=debug))
             events.append(OSCTransition(address, low, high, period / 2.0, debug=debug))
         

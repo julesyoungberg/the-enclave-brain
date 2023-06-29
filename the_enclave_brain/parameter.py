@@ -44,7 +44,7 @@ class Parameter:
 
     def get_prev_value(self):
         if len(self._values) < 2:
-            return None
+            return self._values[0]
 
         return self._values[1]
 

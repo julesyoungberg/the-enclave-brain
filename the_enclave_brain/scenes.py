@@ -14,17 +14,17 @@ EVENTS = ["climate_change", "deforestation", "rain_forest", "storm_forest"]
 SCENES = {
     "healthy_forest": {
         "bg": ["boreal", "forest", "mountains", "rainforest", "flowers", "summer"],
-        "fg": ["birds", "mushrooms"],
-        "fg_blackout": 0.67,
+        "fg": ["birds"],
+        "fg_blackout": 0.9,
     },
     "burning_forest": {
         "bg": ["fires"],
         "fg": ["fires", "smoke"],  # , "falling_trees"],
     },
     "dead_forest": {
-        "bg": ["dead", "deforestation"],
-        "fg": ["storms", "smoke"],  # , "falling_trees"],
-        "fg_blackout": 0.5,
+        "bg": ["dead"],
+        "fg": ["fires", "smoke"],  # , "falling_trees"],
+        "fg_blackout": 0.9,
     },
     "regrowth": {
         "bg": ["growth", "mushrooms"],
@@ -32,8 +32,8 @@ SCENES = {
         "fg_blackout": 0.5,
     },
     "climate_change": {
-        "bg": ["dry_pine", "drought"],
-        "fg": ["storms", "smoke", "fires"],
+        "bg": ["dry_pine", "drought", "smoke"],
+        "fg": ["storms", "fires", "smoke"],
     },
     "deforestation": {
         "bg": [
@@ -44,7 +44,7 @@ SCENES = {
             "logging",
         ],
         # @todo create more appropriate foreground cues from some of bg content
-        "fg": ["storms"],  # "falling_trees"],
+        "fg": ["storms", "smoke"],  # "falling_trees"],
         "fg_blackout": 0.5,
     },
     "rain_forest": {

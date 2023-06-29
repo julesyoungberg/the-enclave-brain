@@ -41,7 +41,7 @@ class LayerController:
         event_manager: OSCEventManager,
         scene="healthy_forest",
         layer_type="bg",
-        frequency=30.0,
+        frequency=20.0,
     ):
         self.event_manager = event_manager
         self.scene = scene
@@ -63,11 +63,13 @@ class LayerController:
         prev_layer = self.current_layer
         prev_bin = self.current_bin
         prev_index = self.current_index
+        prev_cue_index = self.cue_index
 
         # if the scene has changed collect the new scene cues
         if self.scene != self.prev_scene:
             self.prev_scene = self.scene
             self.scene_cues = []
+            prev_cue_index = None
 
             for layer_index in range(2):
                 layer_name = self.layer_type + str(layer_index + 1)
@@ -112,10 +114,12 @@ class LayerController:
                 return
 
         # choose new cue
-        prev_cue_index = self.cue_index
-        self.cue_index = random.randint(0, len(self.scene_cues) - 2)
-        if self.cue_index >= prev_cue_index:
-            self.cue_index += 1
+        if prev_cue_index is not None:
+            self.cue_index = random.randint(0, len(self.scene_cues) - 2)
+            if self.cue_index >= prev_cue_index:
+                self.cue_index += 1
+        else:
+            self.cue_index = random.randint(0, len(self.scene_cues) - 1)
         cue = self.scene_cues[self.cue_index]
         layer_index = cue["layer_index"]
         self.current_layer = f"{self.layer_type}{layer_index}"

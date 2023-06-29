@@ -1,7 +1,7 @@
 import math
 import random
 
-from ..osc.addresses import MADMAPPER_CONFIG
+from ..osc.addresses import MADMAPPER_CONFIG, lights_color_address, lights_content_address
 from ..osc.events import OSCEventManager
 from ..osc.transitions import TriggerCue
 
@@ -34,7 +34,7 @@ class LightsController:
         self, event_manager: OSCEventManager, scene="healthy_forest", frequency=20.0
     ):
         self.event_manager = event_manager
-        self.scen = scene
+        self.scene = scene
         self.frequency = frequency
         self.scene_intensity = 0.0
         self.time = 0.0
@@ -48,37 +48,36 @@ class LightsController:
         self.scene_intensity = scene_intensity
 
     def update(self, dt: float):
-        content_index = math.round(
-            self.scene_intensity * len(MADMAPPER_CONFIG["lights"]["content"])
+        content_index = round(
+            self.scene_intensity * (len(MADMAPPER_CONFIG["lights"]["content"]) - 1)
         )
 
         # update the content according to the scene intensity
         if content_index != self.current_content_index:
+            print("updating lights content")
             self.current_content_index = content_index
             self.event_manager.add_event(
                 TriggerCue(
-                    address=MADMAPPER_CONFIG["lights"]["content"][
-                        self.current_content_index
-                    ]
+                    address=lights_content_address(self.current_content_index)
                 )
             )
 
         scene_changed = self.scene != self.prev_scene
+        self.prev_scene = self.scene
         self.time += dt
 
-        if not scene_changed and (
-            self.time < self.frequency or not self.current_event.done
-        ):
+        if not scene_changed and self.time < self.frequency:
             return
 
         self.time = 0.0
 
         color_index = random.randint(
-            1, len(MADMAPPER_CONFIG["lights"]["colors"][self.scene])
+            1, len(MADMAPPER_CONFIG["lights"]["colors"][self.scene]) - 1
         )
 
+        print("updating lights color")
         self.event_manager.add_event(
             TriggerCue(
-                address=MADMAPPER_CONFIG["lights"]["colors"][self.scene][color_index]
+                address=lights_color_address(self.scene, color_index)
             )
         )

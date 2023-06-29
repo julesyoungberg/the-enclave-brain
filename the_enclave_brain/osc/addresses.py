@@ -23,9 +23,9 @@ def control_addresses(name: str):
 MADMAPPER_CONFIG = {
     "fg2": {
         "cues": {
-            "birds": cues(4, 4),
+            "birds": cues(4, 2),
             "falling_trees": [cue(19, 1, one_shot=True, clip_length=10)],
-            "fires": cues(24, 7),
+            "fires": cues(24, 6),
             "flowers": cues(29, 1),
             "forest": cues(34, 1),
             "mushrooms": cues(42, 1),
@@ -33,6 +33,7 @@ MADMAPPER_CONFIG = {
             "storms": cues(61, 3),
             "winter": cues(69, 1),
             "blackout": cue(74, 4),
+            "smoke": cues(55, 4, start_column=11),
         },
         "controls": control_addresses("Foreground_2"),
     },
@@ -46,25 +47,26 @@ MADMAPPER_CONFIG = {
             "mushrooms": cues(43, 2),
             "storms": cues(62, 3),
             "blackout": cue(74, 3),
+            "smoke": cues(56, 3, start_column=11),
         },
         "controls": control_addresses("Foreground_1"),
     },
     "bg2": {
         "cues": {
             "boreal": cues(1, 2),
-            "dead": cues(7, 3),
+            "dead": cues(7, 5),
             "deforestation": cues(10, 3),
             "dry_pine": cues(13, 3),
             "fall": cues(16, 5),
             "falling_trees": cues(21, 1),
-            "fires": cues(26, 10),
+            "fires": cues(26, 4),
             "flowers": cues(31, 5),
             "forest": cues(36, 2),
             "mountains": cues(39, 3),
             "mushrooms": cues(44, 3),
             "rain": cues(49, 6),
             "rainforest": cues(52, 6),
-            "smoke": cues(55, 7),
+            "smoke": cues(55, 1),
             "spring": cues(58, 4),
             "storms": cues(63, 3),
             "summer": cues(66, 6),
@@ -82,19 +84,19 @@ MADMAPPER_CONFIG = {
     "bg1": {
         "cues": {
             "boreal": cues(2, 1),
-            "dead": cues(8, 4),
+            "dead": cues(8, 3),
             "deforestation": cues(11, 3),
             # "dry_pine": cues(14, 2),
             "fall": cues(17, 4),
             "falling_trees": cues(22, 1),
-            "fires": cues(27, 9),
+            "fires": cues(27, 5),
             "flowers": cues(32, 2),
             "forest": cues(37, 3),
             # "mountains": cues(40, 2),
             "mushrooms": cues(45, 3),
             "rain": cues(50, 6),
             "rainforest": cues(53, 5),
-            "smoke": cues(56, 6),
+            "smoke": cues(56, 3),
             "spring": cues(59, 4),
             "storms": cues(64, 2),
             "summer": cues(67, 6),
@@ -104,15 +106,15 @@ MADMAPPER_CONFIG = {
             "industry": cues(84, 2),
             "pollution": cues(89, 1),
             "roads": cues(94, 2),
-            "growth": cues(99, 2),
+            "growth": cues(99, 3),
             "logging": cues(104, 4),
         },
         "controls": control_addresses("Background_1"),
     },
     "lights": {
         "content": cues(1, 5, start_column=11),
-        "colors:": {
-            "forest": cues_column(11, 3, start_row=2),
+        "colors": {
+            "healthy_forest": cues_column(11, 3, start_row=2),
             "burning_forest": cues_column(12, 3, start_row=2),
             "dead_forest": cues_column(13, 3, start_row=2),
             "regrowth": cues_column(11, 3, start_row=2), # @todo find different colors
@@ -134,6 +136,12 @@ MADMAPPER_CONFIG = {
 
 def lights_control_address(light_control: str) -> str:
     return MADMAPPER_CONFIG["lights"]["controls"][light_control]
+
+def lights_content_address(content_index: int):
+    return MADMAPPER_CONFIG["lights"]["content"][content_index]["address"]
+
+def lights_color_address(scene: str, color_index: int) -> str:
+    return MADMAPPER_CONFIG["lights"]["colors"][scene][color_index]["address"]
 
 def layer_blackout(layer: str) -> str:
     return MADMAPPER_CONFIG[layer]["cues"]["blackout"]["address"]

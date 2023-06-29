@@ -22,6 +22,8 @@ class LightFlickerController:
         self.event_manager = event_manager
         self.sim = simulation
         self.current_event = None
+        self.max_frequency = 30.0
+        self.current_time = 0.0
 
     def flicker_side_tubes(self, n_flicks=1):
         return [
@@ -36,12 +38,16 @@ class LightFlickerController:
         ]
 
     def update(self, dt: float):
-        if self.current_event is not None and not self.current_event.done:
+        self.current_time += dt
+
+        if self.current_event is not None and (not self.current_event.done or self.current_time < self.max_frequency):
             return
         
+        self.current_time = 0.0
         events = []
 
         if self.sim.param("climate_change").has_changed():
+            print("climate change flicker")
             events = [
                 *self.flicker_side_tubes(),
                 OSCEventSequence([
@@ -63,6 +69,7 @@ class LightFlickerController:
                 ]),
             ]
         elif self.sim.param("human_activity").has_changed():
+            print("human activity flicker")
             events = [
                 *self.flicker_side_tubes(n_flicks=2),
                 OSCEventSequence([
@@ -87,6 +94,7 @@ class LightFlickerController:
                 ]),
             ]
         elif self.sim.param("fate").has_changed():
+            print("fate flicker")
             events = [
                 *self.flicker_side_tubes(n_flicks=3),
                 OSCEventSequence([
@@ -108,6 +116,8 @@ class LightFlickerController:
                     ),
                 ]),
             ]
+        else:
+            self.current_time = self.max_frequency
 
         if len(events) > 0:
             self.current_event = OSCEventStack(events)
