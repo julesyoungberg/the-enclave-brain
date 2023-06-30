@@ -54,12 +54,12 @@ MADMAPPER_CONFIG = {
     "bg2": {
         "cues": {
             "boreal": cues(1, 2),
-            "dead": cues(7, 5),
+            "dead": cues(7, 6),
             "deforestation": cues(10, 3),
             "dry_pine": cues(13, 3),
             "fall": cues(16, 5),
             "falling_trees": cues(21, 1),
-            "fires": cues(26, 4),
+            "fires": cues(26, 5),
             "flowers": cues(31, 5),
             "forest": cues(36, 2),
             "mountains": cues(39, 3),
@@ -76,7 +76,7 @@ MADMAPPER_CONFIG = {
             "industry": cues(83, 3),
             "pollution": cues(88, 1),
             "roads": cues(93, 2),
-            "growth": cues(98, 3),
+            "growth": cues(98, 4),
             "logging": cues(103, 2),
         },
         "controls": control_addresses("Background_2"),
@@ -84,7 +84,7 @@ MADMAPPER_CONFIG = {
     "bg1": {
         "cues": {
             "boreal": cues(2, 1),
-            "dead": cues(8, 3),
+            "dead": cues(8, 6),
             "deforestation": cues(11, 3),
             # "dry_pine": cues(14, 2),
             "fall": cues(17, 4),
@@ -106,7 +106,7 @@ MADMAPPER_CONFIG = {
             "industry": cues(84, 2),
             "pollution": cues(89, 1),
             "roads": cues(94, 2),
-            "growth": cues(99, 3),
+            "growth": cues(99, 5),
             "logging": cues(104, 4),
         },
         "controls": control_addresses("Background_1"),

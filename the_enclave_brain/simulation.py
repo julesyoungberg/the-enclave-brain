@@ -205,15 +205,15 @@ class Simulation:
         # trigger time based scenes
         forest_health = self.forest_health.get_current_value()
         if forest_health < 0.2:
-            self.scene = MAIN_SCENES[2]
+            self.scene = "dead_forest"
             self.has_burnt = True
         elif forest_health < 0.5:
             if self.has_burnt:
-                self.scene = MAIN_SCENES[3]
+                self.scene = "regrowth"
             else:
-                self.scene = MAIN_SCENES[1]
+                self.scene = "burning_forest"
         else:
-            self.scene = MAIN_SCENES[0]
+            self.scene = "healthy_forst"
             self.has_burnt = False
 
     def commit_config_params(self):

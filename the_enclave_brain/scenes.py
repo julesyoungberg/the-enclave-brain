@@ -28,7 +28,7 @@ SCENES = {
     },
     "regrowth": {
         "bg": ["growth", "mushrooms"],
-        "fg": ["rain", "mushrooms"],
+        "fg": ["rain", "mushrooms", "flowers"],
         "fg_blackout": 0.5,
     },
     "climate_change": {
