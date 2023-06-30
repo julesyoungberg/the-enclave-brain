@@ -16,8 +16,6 @@ from .osc.init import INIT_EVENT
 from .osc.events import OSCEventManager
 from .simulation import Simulation
 
-TIME_STEP_SECONDS = 1.0 / 60.0
-
 
 class App:
     """
