@@ -14,13 +14,13 @@ class LayerFXController:
 
     def __init__(self, event_manager: OSCEventManager, layer: str):
         self.fx_amount = FaderController(
-            event_manager, layer, "fx_amount", min=0.0, max=1.0
+            event_manager, layer, "fx_amount", min=0.1, max=1.0
         )
         self.feedback_amount = FaderController(
-            event_manager, layer, "feedback_amount", min=0.0, max=0.33
+            event_manager, layer, "feedback_amount", min=0.03, max=0.33
         )
         self.feedback_fx_amount = FaderController(
-            event_manager, layer, "feedback_fx_amount", min=0.0, max=1.0
+            event_manager, layer, "feedback_fx_amount", min=0.1, max=1.0
         )
 
     def set_intensity(self, intensity: float):

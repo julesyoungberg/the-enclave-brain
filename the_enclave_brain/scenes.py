@@ -44,8 +44,8 @@ SCENES = {
             "logging",
         ],
         # @todo create more appropriate foreground cues from some of bg content
-        "fg": ["storms", "smoke"],  # "falling_trees"],
-        "fg_blackout": 0.5,
+        "fg": ["smoke"],
+        "fg_blackout": 0.8,
     },
     "rain_forest": {
         "bg": ["rain"],
