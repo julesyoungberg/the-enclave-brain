@@ -12,7 +12,7 @@ def cues_column(col: int, count: int, start_row=1, **opts):
 
 def control_addresses(name: str):
     return {
-        "feedback_amount": f"/surfaces/Layers/{name}_Layers/{name}_Layer_Feedback/opacity",
+        "feedback_amount": f"/modules/{name}_FEEDBACK_AMOUNT/Inputs/Input_1",
         "feedback_fx_amount": f"/{name}/feedback/fx_amount",
         "fx_amount": f"/{name}/fx_amount",
         "mask_opacity": f"/surfaces/Layers/{name}_Layers/{name}_Layer_Mask/opacity",

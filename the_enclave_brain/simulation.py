@@ -213,7 +213,7 @@ class Simulation:
             else:
                 self.scene = "burning_forest"
         else:
-            self.scene = "healthy_forst"
+            self.scene = "healthy_forest"
             self.has_burnt = False
 
     def commit_config_params(self):

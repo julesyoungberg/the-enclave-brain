@@ -19,11 +19,11 @@ SCENES = {
     },
     "burning_forest": {
         "bg": ["fires"],
-        "fg": ["fires", "smoke"],  # , "falling_trees"],
+        "fg": ["fires", "smoke"],
     },
     "dead_forest": {
         "bg": ["dead"],
-        "fg": ["fires", "smoke"],  # , "falling_trees"],
+        "fg": ["fires", "smoke"],
         "fg_blackout": 0.9,
     },
     "regrowth": {
@@ -43,7 +43,6 @@ SCENES = {
             "roads",
             "logging",
         ],
-        # @todo create more appropriate foreground cues from some of bg content
         "fg": ["smoke"],
         "fg_blackout": 0.8,
     },
