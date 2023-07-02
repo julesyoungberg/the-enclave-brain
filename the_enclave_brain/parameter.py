@@ -49,12 +49,16 @@ class Parameter:
         return self._values[1]
 
     def get_mean(self):
+        if len(self._values) < 1:
+            return 0.0
         return np.mean(self._values)
 
     def get_std(self):
         return np.std(self._values)
 
     def get_velocity(self):
+        if len(self._values) < 2:
+            return 0.0
         return np.mean(np.subtract(self._values[:-1], self._values[1:]))
 
     def get_change(self):

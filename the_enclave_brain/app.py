@@ -57,6 +57,7 @@ class App:
         self.music_controller = Audio_controller("music")
         self.foley_controller.set_scene(self.scene)
         self.music_controller.set_scene(self.scene)
+        control.init_uc_comms()
 
 
     def update(self, dt: float):
