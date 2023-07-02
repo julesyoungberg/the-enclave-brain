@@ -62,7 +62,7 @@ MADMAPPER_CONFIG = {
             "fires": cues(26, 5),
             "flowers": cues(31, 5),
             "forest": cues(36, 2),
-            "mountains": cues(39, 3),
+            "mountains": cues(39, 2),
             "mushrooms": cues(44, 2),
             "rain": cues(49, 3),
             "rainforest": cues(52, 6),
