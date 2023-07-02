@@ -114,9 +114,9 @@ class LayerController:
                 return
 
         # choose new cue
-        cues = self.cues
+        cues = self.scene_cues
         if self.layer_type == "bg":
-            other_layer_cues = [cue for cue in self.cues if cue["layer"] != self.current_layer]
+            other_layer_cues = [cue for cue in self.scene_cues if cue["layer"] != self.current_layer]
             if len(other_layer_cues) > 0:
                 cues = other_layer_cues
                 prev_cue_index = None
