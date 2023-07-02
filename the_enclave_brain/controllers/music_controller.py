@@ -36,8 +36,8 @@ def initialize_filepaths():
     music_paths["burning_forest"] = (where_we_at_path + MUSIC_FOLDER + "/BURN")
     music_paths["dead_forest"] = (where_we_at_path + MUSIC_FOLDER + "/BURNT")
     music_paths["growing_forest"] = (where_we_at_path + MUSIC_FOLDER + "/GROWING")
-    music_paths["storm_forest"] = (where_we_at_path + MUSIC_FOLDER + "/STORM")
-    music_paths["rain_forest"] = (where_we_at_path + MUSIC_FOLDER + "/RAIN")
+    music_paths["storm"] = (where_we_at_path + MUSIC_FOLDER + "/STORM")
+    music_paths["rain"] = (where_we_at_path + MUSIC_FOLDER + "/RAIN")
     music_paths["deforestation"] = (where_we_at_path + MUSIC_FOLDER + "/HUMAN")
     music_paths["climate_change"] = (where_we_at_path + MUSIC_FOLDER + "/CLIMATE_CHANGE")
 

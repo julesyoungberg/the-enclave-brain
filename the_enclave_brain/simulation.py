@@ -30,12 +30,12 @@ class Simulation:
         self.config = {
             # this is a parameter controlling the impact of climate change
             "climate_change": {
-                "parameter": Parameter(0.5, lookback=STEPS_PER_SECOND),
+                "parameter": Parameter(0.0, lookback=STEPS_PER_SECOND),
                 "weight": 0.001,
             },
             # this is a paramter controlling the impact of human activity which can be good or bad
             "human_activity": {
-                "parameter": Parameter(0.5, lookback=STEPS_PER_SECOND),
+                "parameter": Parameter(0.0, lookback=STEPS_PER_SECOND),
                 "weight": 0.001,
             },
             # this is a parameter controlling the randomness of fx and events
@@ -48,7 +48,7 @@ class Simulation:
         self.current_time = 0.0
         self.scene_intensity = 0.0
         self.event_forest_health_effect = 0.0
-        self.has_burnt = False
+        self.has_died = False
 
     def param(self, name: str) -> Parameter:
         """Helper for retrieving config params"""
@@ -57,6 +57,8 @@ class Simulation:
     def update_config(self, key: str, value: float):
         """Updates a configuration parameter"""
         self.lock.acquire()
+        if key != "fate":
+            value = value * 2.0 - 1.0
         print("Updating", key, "to", value)
         self.config[key]["value"].update_value(value)
         self.lock.release()
@@ -72,10 +74,10 @@ class Simulation:
         if event == "climate_change" or event == "deforestation":
             self.event_forest_health_effect = -0.1
 
-        if event == "storm_forest" and self.forest_health.get_current_value() < 0.77:
+        if event == "storm":
             self.event_forest_health_effect = -0.1
 
-        if event == "rain_forest":
+        if event == "rain":
             self.event_forest_health_effect = 0.1
 
     def trigger_event(self, event: str):
@@ -94,12 +96,12 @@ class Simulation:
         """Computes the current forest health."""
         forest_health = self.forest_health.get_current_value()
         forest_health += (
-            (0.5 - self.param("climate_change").get_current_value())
+            self.param("climate_change").get_current_value()
             * self.config["climate_change"]["weight"]
             * dt
         )
         forest_health += (
-            (0.5 - self.param("human_activity").get_current_value())
+            self.param("human_activity").get_current_value()
             * self.config["human_activity"]["weight"]
             * dt
         )
@@ -127,6 +129,9 @@ class Simulation:
         self, event: str, param: Parameter, value_threshold=0.5, invert=False
     ):
         """Triggers an event if the param experiences fast changes."""
+        if self.event_till is not None:
+            return
+
         value = param.get_current_value()
         velocity = param.get_velocity()
         if abs(velocity) > VELOCITY_THRESHOLD:
@@ -142,6 +147,23 @@ class Simulation:
                 (invert and value > value_threshold)
             ) and self.scene == event:
                 self.event_till = None
+    
+    def trigger_knob_event(
+        self, event: str, param: Parameter, value_threshold=0.25
+    ):
+        if self.event_till is not None:
+            return
+
+        value = param.get_current_value()
+        velocity = param.get_velocity()
+        if (velocity < 0.0) != (value_threshold < 0.0):
+            return
+        
+        if (
+            (value_threshold > 0.0 and value > value_threshold) or
+            (value_threshold < 0.0 and value < value_threshold)
+        ):
+            self.handle_event(event, 30 * (1.0 + abs(value)))
 
     def trigger_velocity_events(self):
         """Triggers events based on parameter velocity."""
@@ -149,15 +171,21 @@ class Simulation:
             return
 
         # trigger events on fast control change
-        self.trigger_event_on_velocity(
-            "climate_change", self.param("climate_change")
-        )
-        self.trigger_event_on_velocity(
-            "deforestation", self.param("human_activity"), 0.75
-        )
-        self.trigger_event_on_velocity(
-            "growing_forest", self.param("human_activity"), 0.25, invert=True
-        )
+        # self.trigger_event_on_velocity(
+        #     "climate_change", self.param("climate_change")
+        # )
+        # self.trigger_event_on_velocity(
+        #     "deforestation", self.param("human_activity"), 0.75
+        # )
+        # self.trigger_event_on_velocity(
+        #     "growing_forest", self.param("human_activity"), 0.25, invert=True
+        # )
+        # @todo adjust threshold based on fate
+        self.trigger_knob_event("storm", self.param("climate_change"), -0.75)
+        self.trigger_knob_event("rain", self.param("climate_change"), -0.3)
+        self.trigger_knob_event("climate_change", self.param("climate_change"), 0.5)
+        self.trigger_knob_event("growing_forest", self.param("human_activity"), -0.5)
+        self.trigger_knob_event("deforestation", self.param("human_activity"), 0.5)
 
     def trigger_probability_event(self, event: str, param: Parameter, roll: float, weight=0.0001):
         """Trigger event based on param probability and roll"""
@@ -181,21 +209,21 @@ class Simulation:
         fate_value = self.param("fate").get_current_value() * 0.0001
         fate_roll = random.random()
         if fate_roll < fate_value:
-            fate_events = ["climate_change", "rain_forest", "storm_forest"]
+            fate_events = ["rain", "storm"]
             event = fate_events[random.randint(0, len(fate_events) - 1)]
             print(f"triggering fate event ({fate_roll} < {fate_value}):", event)
             self.handle_event(event)
             return
-        else:
-            fate_roll -= fate_value
+        # else:
+        #     fate_roll -= fate_value
 
-        fate_roll = self.trigger_probability_event(
-            "climate_change", self.param("climate_change"), fate_roll
-        )
+        # fate_roll = self.trigger_probability_event(
+        #     "climate_change", self.param("climate_change"), fate_roll
+        # )
 
-        self.trigger_probability_event(
-            "deforestation", self.param("human_activity"), fate_roll
-        )
+        # self.trigger_probability_event(
+        #     "deforestation", self.param("human_activity"), fate_roll
+        # )
 
     def set_main_scene(self):
         """Sets the main scene if there is no current event"""
@@ -206,15 +234,15 @@ class Simulation:
         forest_health = self.forest_health.get_current_value()
         if forest_health < 0.2:
             self.scene = "dead_forest"
-            self.has_burnt = True
+            self.has_died = True
         elif forest_health < 0.5:
-            if self.has_burnt:
+            if self.has_died:
                 self.scene = "growing_forest"
             else:
                 self.scene = "burning_forest"
         else:
             self.scene = "healthy_forest"
-            self.has_burnt = False
+            self.has_died = False
 
     def commit_config_params(self):
         """Saves current config params for the current frame."""

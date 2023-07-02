@@ -8,7 +8,7 @@ MAIN_SCENES = [
     "growing_forest",
 ]
 
-EVENTS = ["climate_change", "deforestation", "rain_forest", "storm_forest"]
+EVENTS = ["climate_change", "deforestation", "rain", "storm"]
 
 
 SCENES = {
@@ -33,7 +33,7 @@ SCENES = {
     },
     "climate_change": {
         "bg": ["dry_pine", "drought", "smoke"],
-        "fg": ["storms", "fires", "smoke"],
+        "fg": ["fires", "smoke"], # "storms"],
     },
     "deforestation": {
         "bg": [
@@ -46,11 +46,11 @@ SCENES = {
         "fg": ["smoke"],
         "fg_blackout": 0.8,
     },
-    "rain_forest": {
+    "rain": {
         "bg": ["rain"],
         "fg": ["rain"],
     },
-    "storm_forest": {
+    "storm": {
         "bg": ["storms"],
         "fg": ["storms"],
     },

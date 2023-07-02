@@ -120,8 +120,8 @@ MADMAPPER_CONFIG = {
             "growing_forest": cues_column(11, 3, start_row=2), # @todo find different colors
             "climate_change": cues_column(14, 3, start_row=2),
             "deforestation": cues_column(15, 3, start_row=2),
-            "rain_forest": cues_column(16, 3, start_row=2),
-            "storm_forest": cues_column(17, 3, start_row=2),
+            "rain": cues_column(16, 3, start_row=2),
+            "storm": cues_column(17, 3, start_row=2),
         },
         "controls": {
             "tubes1_brightness": "/modules/TUBES_1_BRIGHTNESS/Inputs/Input_1",

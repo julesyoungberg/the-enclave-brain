@@ -33,8 +33,8 @@ SCENE_FILE_COUNTS = {
     "burning_forest": 1,
     "dead_forest": 1,
     "growing_forest": 1,
-    "storm_forest": 1,
-    "rain_forest": 1,
+    "storm": 1,
+    "rain": 1,
     "deforestation": 2,
     # "climate_change": 1,
 }
@@ -45,8 +45,8 @@ def initialize_filepaths():
     audio_paths["burning_forest"] = (where_we_at_path + AUDIO_FOLDER + "/BURN")
     audio_paths["dead_forest"] = (where_we_at_path + AUDIO_FOLDER + "/BURNT")
     audio_paths["growing_forest"] = (where_we_at_path + AUDIO_FOLDER + "/GROWING")
-    audio_paths["storm_forest"] = (where_we_at_path + AUDIO_FOLDER + "/STORM")
-    audio_paths["rain_forest"] = (where_we_at_path + AUDIO_FOLDER + "/RAIN")
+    audio_paths["storm"] = (where_we_at_path + AUDIO_FOLDER + "/STORM")
+    audio_paths["rain"] = (where_we_at_path + AUDIO_FOLDER + "/RAIN")
     audio_paths["deforestation"] = (where_we_at_path + AUDIO_FOLDER + "/HUMAN")
     # No sound design for this one??
     # audio_paths["climate_change"] = (where_we_at_path + AUDIO_FOLDER + "/CLIMATE_CHANGE")

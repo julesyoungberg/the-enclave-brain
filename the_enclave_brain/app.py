@@ -41,7 +41,7 @@ class App:
         self.event_manager.add_event(INIT_EVENT)
 
         # set initial scene and create layer randomizers
-        self.scene = "storm_forest" # self.simulation.scene
+        self.scene = "storm" # self.simulation.scene
         self.bg_controller = LayerController(
             self.event_manager, layer_type="bg", scene=self.scene
         )
