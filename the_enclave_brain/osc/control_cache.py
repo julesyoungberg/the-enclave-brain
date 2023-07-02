@@ -2,7 +2,7 @@ _cache = {}
 
 
 def set_value(address: str, value: float):
-    _cache[address] = value
+    _cache[address] = round(value, 2)
 
 
 def get_value(address: str):
