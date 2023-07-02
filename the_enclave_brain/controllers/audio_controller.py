@@ -26,8 +26,8 @@ AUDIO_CHUNK_SZ = 1024
 MUSIC_FOLDER = "/music"
 FOLEY_FOLDER = "/audio"
 
-OUTPUT_DEVICE = "Macbook Pro Speakers"
-# OUTPUT_DEVICE = "Speakers BlackHole"
+# OUTPUT_DEVICE = "Macbook Pro Speakers"
+OUTPUT_DEVICE = "Speakers BlackHole"
 # OUTPUT_DEVICE = "HDMI BlackHole"
 
 class Audio_controller:
@@ -144,29 +144,37 @@ class Audio_controller:
         fade_out_curve = np.linspace(self.volumes[filename], 0, fade_out_samples)
         self.audio_data[filename][-fade_out_samples:] *= fade_out_curve[:, np.newaxis]
 
-        stream = sd.OutputStream(channels=self.audio_data[filename].shape[1], device=OUTPUT_DEVICE)
-        stream.start()
+        event = threading.Event()
+
+        current_frame = 0
+        data = self.audio_data[filename]
+
+        def callback(outdata, frames, time, status):
+            nonlocal current_frame
+            chunksize = min(len(data) - current_frame, frames)
+            chunk = data[current_frame:current_frame + chunksize]
+            # Effects
+            chunk = self.board(chunk, self.samplerates[filename], reset=False)
+            outdata[:chunksize] = chunk
+            self.audio_idx[filename] += AUDIO_CHUNK_SZ
+            if chunksize < frames:
+                outdata[chunksize:] = 0
+                raise sd.CallbackStop()
+            current_frame += chunksize
+
+        stream = sd.OutputStream(
+            channels=self.audio_data[filename].shape[1],
+            device=OUTPUT_DEVICE,
+            samplerate=self.samplerates[filename],
+            blocksize=AUDIO_CHUNK_SZ,
+            callback=callback,
+            finished_callback=event.set
+        )
         self.streams[filename] = stream
 
-        def write_audio():
-            current_index = 0
-            while current_index < self.audio_len[filename]:
-                chunk = self.audio_data[filename][current_index:current_index+AUDIO_CHUNK_SZ]
-                chunk *= self.volumes[filename]
-                if len(chunk) < AUDIO_CHUNK_SZ:
-                    # NOTE: this line produces a dtype mismatch TypeError
-                    # resolving this error by setting the correct dtype on np.zeros produces a pop
-                    chunk = np.append(chunk, np.zeros([AUDIO_CHUNK_SZ - len(chunk), 2]), axis=0)
-
-                # Effects
-                effected = self.board(chunk, self.samplerates[filename], reset=False)
-                stream.write(effected)
-                
-                self.audio_idx[filename] += AUDIO_CHUNK_SZ # TODO combine self.audio_idx[filename] & current_index
-                current_index += AUDIO_CHUNK_SZ
-
-            stream.stop()
-            stream.close()
+        def audio_thread():
+            with stream:
+                event.wait()
             del self.streams[filename]
             del self.audio_data[filename]
             del self.samplerates[filename]
@@ -175,7 +183,7 @@ class Audio_controller:
             del self.audio_len[filename]
             del self.file_active[filename]
 
-        t = threading.Thread(target=write_audio)
+        t = threading.Thread(target=audio_thread)
         t.start()
 
 

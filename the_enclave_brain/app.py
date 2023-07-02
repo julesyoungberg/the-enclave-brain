@@ -106,7 +106,7 @@ class App:
 
         # update controllers
         self.bg_controller.update(dt)
-        self.fg_controller.update(dt) #, force=scene_changed)
+        self.fg_controller.update(dt, force=scene_changed)
         self.lights_controller.update(dt)
         # ambient_audio_controller.update(self.scene, self.simulation)
         self.foley_controller.update(self.scene, self.simulation)
