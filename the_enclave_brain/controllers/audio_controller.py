@@ -251,11 +251,11 @@ class Audio_controller:
             self.board[2].cutoff_frequency_hz = lpf
             self.board[3].cutoff_frequency_hz = hpf
 
-        elif(self.sound_type is 'foley'):
-            # **********************
-            # TODO do thing with knob_vals[2]
-            # ***********************
-            self.board[0].thingy = knob_vals[2]
+        # elif(self.sound_type is 'foley'):
+        #     # **********************
+        #     # TODO do thing with knob_vals[2]
+        #     # ***********************
+        #     self.board[0].thingy = knob_vals[2]
 
 
 # # For testing

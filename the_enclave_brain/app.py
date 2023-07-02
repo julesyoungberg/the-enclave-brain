@@ -86,7 +86,7 @@ class App:
             self.bg_controller.set_scene(self.scene)
             self.fg_controller.set_scene(self.scene)
             self.lights_controller.set_scene(self.scene)
-            self.ambient_audio_controller.set_scene(self.scene)
+            self.foley_controller.set_scene(self.scene)
             self.music_controller.set_scene(self.scene)
 
         # print(f"forest_health={self.simulation.forest_health.get_current_value()}, scene={self.scene}, scene_intensity={self.simulation.scene_intensity}")
