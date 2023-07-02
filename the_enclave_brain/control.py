@@ -1,38 +1,93 @@
-import time
+import ctypes
+import struct
+import serial
 
-import mido
+ser = None
 
-from .simulation import Simulation
+RGB_struct_format = "BBBB"  # 4 uint8 for lightIdx, R, G, and B values
+class RGB(ctypes.Structure):
+    _fields_ = [
+        ("lightIdx", ctypes.c_ubyte),
+        ("R", ctypes.c_ubyte),
+        ("G", ctypes.c_ubyte),
+        ("B", ctypes.c_ubyte)
+    ]
 
-CONFIG_MAPPING = {
-    0: "climate_change",
-    1: "human_activity",
-    2: "fate",
-}
+ctrl_input_format = "bBH" # char, uint8, uint16
+class ctrl_input(ctypes.Structure):
+    _fields_ = [
+        ("type", ctypes.c_char), # b for button, p for pot
+        ("idx", ctypes.c_ubyte), # which button/pot (1-3)
+        ("val", ctypes.c_uint16), # 1 or 0 for button, 0-65535 for pot
+    ]
+
+def init_uc_comms():
+    global ser
+    try: 
+        ser = serial.Serial(
+            port='/dev/tty.usbserial', # For mac, '/dev/tty.usbserial' or '/dev/tty0'
+            baudrate=115200,
+            bytesize=serial.EIGHTBITS,
+            parity=serial.PARITY_NONE,
+            stopbits=serial.STOPBITS_ONE
+        )
+    except:
+        print('Yo start the micro first pls')
+
+# Led idx is 0 or 1 cause we have two floodlights
+def tx_floodlight_packet(led_idx, R, G, B):
+    rgb_value = RGB(led_idx, R, G, B)
+    packed_data = struct.pack(RGB_struct_format, rgb_value.lightIdx, rgb_value.R, rgb_value.G, rgb_value.B)
+    
+    # transmit it to uC
+    if ser is not None:
+        ser.write(packed_data)
+
+# Do this while returned value is not none 
+def rx_uc_packet():
+    if ser is not None:
+        if ser.in_waiting > 0:
+            packed_rx_data = ser.read(struct.calcsize(ctrl_input_format))
+            unpacked_data = struct.unpack(ctrl_input_format, packed_rx_data)
+            new_ctrl_input = ctrl_input(*unpacked_data)
+
+            # Handle data
+            print(new_ctrl_input.type, new_ctrl_input.idx, new_ctrl_input.val)
+            return(new_ctrl_input.type, new_ctrl_input.idx, new_ctrl_input.val)
+        else:
+            return None
+    else:
+        print('start microcontroller first')
 
 
-def control_loop(sim: Simulation):
-    """
-    This function runs an infinite control loop that listens for MIDI input and updates the simulation accordingly.
-    The input parameter is a simulation object (sim).
-    The loop continuously listens on the MIDI port.
-    It parses the MIDI messages, updates the simulation config if a valid mapping is found, and ignores unknown channels.
-    If the MIDI port becomes unavailable, the loop sleeps before retrying.
-    """
-    return None
-    # while True:
-    #     try:
-    #         with mido.open_input() as inport:
-    #             print("Listening on MIDI port", inport)
-    #             for msg in inport:
-    #                 print("Received MIDI message", msg)
-    #                 key = msg.channel
-    #                 value = msg.value
-    #                 if key not in CONFIG_MAPPING:
-    #                     print("Unknown channel:", key)
-    #                     continue
-    #                 sim.update_config(CONFIG_MAPPING[key], float(value) / 255.0)
-    #     except Exception as e:
-    #         print(e)
-    #     print("MIDI port unavailable, sleeping and retrying")
-    #     time.sleep(5)
+# WORKING EXAMPLE
+
+# def main():
+#     # Test COM port
+#     ser = serial.Serial(
+#         port='COM4', # For mac, '/dev/tty.usbserial' or '/dev/tty0'
+#         baudrate=115200,
+#         bytesize=serial.EIGHTBITS,
+#         parity=serial.PARITY_NONE,
+#         stopbits=serial.STOPBITS_ONE
+#     )
+
+#     while True:
+
+#         # Create an instance of the RGB structure
+#         rgb_value = RGB(1, 255, 128, 0)
+#         packed_data = struct.pack(RGB_struct_format, rgb_value.lightIdx, rgb_value.R, rgb_value.G, rgb_value.B)
+        
+#         # transmit it to uC
+#         ser.write(packed_data)
+
+#         # Rx from uC
+#         while ser.in_waiting > 0:
+#             packed_rx_data = ser.read(struct.calcsize(ctrl_input_format))
+#             unpacked_data = struct.unpack(ctrl_input_format, packed_rx_data)
+#             new_ctrl_input = ctrl_input(*unpacked_data)
+
+#             # Handle data
+#             print(new_ctrl_input.type, new_ctrl_input.idx, new_ctrl_input.val)
+
+#         time.sleep(1)
