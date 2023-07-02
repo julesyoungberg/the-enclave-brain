@@ -40,7 +40,7 @@ class App:
         self.event_manager.add_event(INIT_EVENT)
 
         # set initial scene and create layer randomizers
-        self.scene = self.simulation.scene
+        self.scene = "storm" # self.simulation.scene
         self.bg_controller = LayerController(
             self.event_manager, layer_type="bg", scene=self.scene
         )
@@ -87,15 +87,15 @@ class App:
 
         scene_changed = self.scene != self.simulation.scene
 
-        # update controller discrete scene data when needed
-        if scene_changed:
-            self.scene = self.simulation.scene
-            print("\nSCENE CHANGED:", self.scene)
-            self.bg_controller.set_scene(self.scene)
-            self.fg_controller.set_scene(self.scene)
-            self.lights_controller.set_scene(self.scene)
-            self.foley_controller.set_scene(self.scene)
-            self.music_controller.set_scene(self.scene)
+        # # update controller discrete scene data when needed
+        # if scene_changed:
+        #     self.scene = self.simulation.scene
+        #     print("\nSCENE CHANGED:", self.scene)
+        #     self.bg_controller.set_scene(self.scene)
+        #     self.fg_controller.set_scene(self.scene)
+        #     self.lights_controller.set_scene(self.scene)
+        #     self.foley_controller.set_scene(self.scene)
+        #     self.music_controller.set_scene(self.scene)
 
         # print(f"forest_health={self.simulation.forest_health.get_mean()}, scene={self.scene}, scene_intensity={self.simulation.scene_intensity}")
         
