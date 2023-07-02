@@ -26,16 +26,16 @@ class Simulation:
 
     def __init__(self):
         self.scene = MAIN_SCENES[0]
-        self.forest_health = Parameter(1.0, lookback=STEPS_PER_SECOND)
+        self.forest_health = Parameter(1.0, lookback=1)
         self.config = {
             # this is a parameter controlling the impact of climate change
             "climate_change": {
-                "parameter": Parameter(0.0, lookback=STEPS_PER_SECOND),
+                "parameter": Parameter(0.0, lookback=1),
                 "weight": 0.001,
             },
             # this is a paramter controlling the impact of human activity which can be good or bad
             "human_activity": {
-                "parameter": Parameter(0.0, lookback=STEPS_PER_SECOND),
+                "parameter": Parameter(0.0, lookback=1),
                 "weight": 0.001,
             },
             # this is a parameter controlling the randomness of fx and events
@@ -54,13 +54,18 @@ class Simulation:
         """Helper for retrieving config params"""
         return self.config[name]["parameter"]
 
+    def print_config(self):
+        for key in self.config:
+            print(f"{key}={round(self.param(key).get_mean(), 3)}", end="\t")
+        print("")
+
     def update_config(self, key: str, value: float):
         """Updates a configuration parameter"""
         self.lock.acquire()
         if key != "fate":
             value = value * 2.0 - 1.0
-        print("Updating", key, "to", value)
-        self.config[key]["value"].update_value(value)
+        # print("Updating", key, "to", value)
+        self.config[key]["parameter"].update_value(value)
         self.lock.release()
 
     def handle_event(self, event: str, duration=30.0):
@@ -94,14 +99,14 @@ class Simulation:
 
     def get_forest_health(self, dt: float):
         """Computes the current forest health."""
-        forest_health = self.forest_health.get_current_value()
+        forest_health = self.forest_health.get_mean()
         forest_health += (
-            self.param("climate_change").get_current_value()
+            self.param("climate_change").get_mean()
             * self.config["climate_change"]["weight"]
             * dt
         )
         forest_health += (
-            self.param("human_activity").get_current_value()
+            self.param("human_activity").get_mean()
             * self.config["human_activity"]["weight"]
             * dt
         )
@@ -122,7 +127,7 @@ class Simulation:
             scene_intensity = (scene_val - 0.5) / 0.3
             if scene_intensity > 1.0:
                 scene_intensity = (scene_val - 0.7) / 0.2
-        fate_value = self.param("fate").get_current_value()
+        fate_value = self.param("fate").get_mean()
         self.scene_intensity = min(1.0, scene_intensity * 0.7 + fate_value * 0.15 + (1.0 - forest_health) * 0.15)
 
     def trigger_event_on_velocity(
@@ -132,7 +137,7 @@ class Simulation:
         if self.event_till is not None:
             return
 
-        value = param.get_current_value()
+        value = param.get_mean()
         velocity = param.get_velocity()
         if abs(velocity) > VELOCITY_THRESHOLD:
             if (
@@ -154,7 +159,7 @@ class Simulation:
         if self.event_till is not None:
             return
 
-        value = param.get_current_value()
+        value = param.get_mean()
         velocity = param.get_velocity()
         if (velocity < 0.0) != (value_threshold < 0.0):
             return
@@ -163,6 +168,7 @@ class Simulation:
             (value_threshold > 0.0 and value > value_threshold) or
             (value_threshold < 0.0 and value < value_threshold)
         ):
+            print("triggering knob event:", event)
             self.handle_event(event, 30 * (1.0 + abs(value)))
 
     def trigger_velocity_events(self):
@@ -192,7 +198,7 @@ class Simulation:
         if self.event_till is not None:
             return
 
-        value = param.get_current_value() * weight
+        value = param.get_mean() * weight
         if roll < value:
             print(f"triggering probability event ({roll} < {value}):", event)
             self.handle_event(event)
@@ -206,7 +212,7 @@ class Simulation:
             return
 
         # trigger random events based on fate
-        fate_value = self.param("fate").get_current_value() * 0.0001
+        fate_value = self.param("fate").get_mean() * 0.0001
         fate_roll = random.random()
         if fate_roll < fate_value:
             fate_events = ["rain", "storm"]
@@ -231,7 +237,7 @@ class Simulation:
             return
 
         # trigger time based scenes
-        forest_health = self.forest_health.get_current_value()
+        forest_health = self.forest_health.get_mean()
         if forest_health < 0.2:
             self.scene = "dead_forest"
             self.has_died = True
@@ -270,7 +276,7 @@ class Simulation:
         self.commit_config_params()
 
         # @todo remove
-        self.randomize_config_params()
+        # self.randomize_config_params()
 
         self.lock.release()
 
@@ -280,7 +286,7 @@ class Simulation:
             roll = random.random()
             if roll < 0.01:
                 param = self.param(param_name)
-                value = param.get_current_value()
+                value = param.get_mean()
                 change = (random.random() - 0.5) * 0.1
                 next_value = min(1.0, max(0.0, value + change))
                 # print(f"setting value {param_name}:", next_value)

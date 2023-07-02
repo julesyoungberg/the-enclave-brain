@@ -62,15 +62,22 @@ class App:
 
     def update(self, dt: float):
         new_ctrl_data = control.rx_uc_packet()
+        received_data = False
         while new_ctrl_data is not None:
+            received_data = True
             btn_or_knob, ctrl_idx, ctrl_val = new_ctrl_data
-            if btn_or_knob == 'p': # for "potentiometer"
-                self.simulation.update_config(uc_ctrl_idx_to_simulation_key[ctrl_idx], ctrl_val)
+            # print("Received data", btn_or_knob, ctrl_idx, ctrl_val)
+            if btn_or_knob == b'p': # for "potentiometer"
+                if ctrl_idx < len(uc_ctrl_idx_to_simulation_key):
+                    self.simulation.update_config(uc_ctrl_idx_to_simulation_key[ctrl_idx], ctrl_val)
             # elif btn_or_knob is 'b':
                 # TODO use ctrl_idx to determine what event is trigged
                 # self.simulation.trigger_event()
 
             new_ctrl_data = control.rx_uc_packet()
+
+        if received_data:
+            self.simulation.print_config()
 
         # update light flicker controller before because it checks if params have changed
         self.light_flicker_controller.update(dt)
@@ -90,7 +97,7 @@ class App:
             self.foley_controller.set_scene(self.scene)
             self.music_controller.set_scene(self.scene)
 
-        # print(f"forest_health={self.simulation.forest_health.get_current_value()}, scene={self.scene}, scene_intensity={self.simulation.scene_intensity}")
+        # print(f"forest_health={self.simulation.forest_health.get_mean()}, scene={self.scene}, scene_intensity={self.simulation.scene_intensity}")
         
         # update controller continuous scene data every frame
         self.bg_controller.set_scene_intensity(self.simulation.scene_intensity)

@@ -75,8 +75,8 @@ def rx_uc_packet():
             new_ctrl_input = ctrl_input(type=ctrl_type, idx=ctrl_idx, val=ctrl_val)
 
             # Handle data
-            print("\nReceived data", new_ctrl_input.type, new_ctrl_input.idx, new_ctrl_input.val)
-            return(new_ctrl_input.type, new_ctrl_input.idx, new_ctrl_input.val)
+            # print("\nReceived data", new_ctrl_input.type, new_ctrl_input.idx, new_ctrl_input.val)
+            return(new_ctrl_input.type, new_ctrl_input.idx, float(new_ctrl_input.val) / 4094.0)
         else:
             return None
     # else:

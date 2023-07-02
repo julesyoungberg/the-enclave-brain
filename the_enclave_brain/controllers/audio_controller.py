@@ -43,12 +43,12 @@ class Audio_controller:
         # The ordering of these effects is critical!!
         self.board = Pedalboard()
 
-        if(self.sound_type is 'music'):
+        if self.sound_type == 'music':
             self.board.append(Distortion(drive_db=0))
             self.board.append(Gain(gain_db=0))
             self.board.append(LowpassFilter(cutoff_frequency_hz=LOWPASS_FILTER_MAX_Hz))
             self.board.append(HighpassFilter(cutoff_frequency_hz=HIGHPASS_FILTER_MIN_Hz))
-        elif(self.sound_type is 'foley'):
+        elif self.sound_type == 'foley':
             self.board.append(Reverb()) # TODO add relevant params
             self.board.append(Delay())
         else:
@@ -57,7 +57,7 @@ class Audio_controller:
         where_we_at_path = str(Path.cwd().resolve())
 
         # NOTE Missing music files in your filepath? Download them from Jules' gdrive
-        if(self.sound_type is 'music'):
+        if self.sound_type == 'music':
             self.paths["healthy_forest"] = (where_we_at_path + MUSIC_FOLDER + "/HEALTHY") # Looks like "path/audio/HEALTHY"
             self.paths["burning_forest"] = (where_we_at_path + MUSIC_FOLDER + "/BURN")
             self.paths["dead_forest"] = (where_we_at_path + MUSIC_FOLDER + "/BURNT")
@@ -66,7 +66,7 @@ class Audio_controller:
             self.paths["rain"] = (where_we_at_path + MUSIC_FOLDER + "/RAIN")
             self.paths["deforestation"] = (where_we_at_path + MUSIC_FOLDER + "/HUMAN")
             self.paths["climate_change"] = (where_we_at_path + MUSIC_FOLDER + "/CLIMATE_CHANGE")
-        elif(self.sound_type is 'foley'):
+        elif self.sound_type == 'foley':
             self.paths["healthy_forest"] = (where_we_at_path + FOLEY_FOLDER + "/HEALTHY") # Looks like "path/audio/HEALTHY"
             self.paths["burning_forest"] = (where_we_at_path + FOLEY_FOLDER + "/BURN")
             self.paths["dead_forest"] = (where_we_at_path + FOLEY_FOLDER + "/BURNT")
@@ -74,7 +74,7 @@ class Audio_controller:
             self.paths["storm"] = (where_we_at_path + FOLEY_FOLDER + "/STORM")
             self.paths["rain"] = (where_we_at_path + FOLEY_FOLDER + "/RAIN")
             self.paths["deforestation"] = (where_we_at_path + FOLEY_FOLDER + "/HUMAN")
-            self.paths["climate_change"] = (where_we_at_path + FOLEY_FOLDER + "/CLIMATE_CHANGE")
+            self.paths["climate_change"] = (where_we_at_path + FOLEY_FOLDER + "/CLIMATECHANGE")
         else:
             print("invalid sound type, Paths are fuked bro")
 
@@ -98,7 +98,7 @@ class Audio_controller:
 
         remaining_times = self.get_audio_time_remaining()
         for filename in remaining_times:
-            if remaining_times[filename] < FADE_TIME_s and self.file_active[filename] is 1:
+            if remaining_times[filename] < FADE_TIME_s and self.file_active[filename] == 1:
 
                 # Mark the audio file that's finishing
                 self.file_active[filename] = 0
@@ -222,16 +222,16 @@ class Audio_controller:
 
     def get_effect_knob_vals(self, simulation:Simulation):
         vals = [
-            simulation.param("climate_change").get_current_value(),
-            simulation.param("human_activity").get_current_value(),
-            simulation.param("fate").get_current_value()
+            simulation.param("climate_change").get_mean(),
+            simulation.param("human_activity").get_mean(),
+            simulation.param("fate").get_mean()
         ]
         return vals
 
     # Expects normalized knob values (0-1)
     def knob_val_to_effect(self, knob_vals):
 
-        if(self.sound_type is "music"):
+        if self.sound_type == "music":
             # Distortion
             self.board[0].drive_db = knob_vals[0]*DISTORTION_MAX_dB
             self.board[1].gain_db = -knob_vals[0]*DISTORTION_MAX_dB # compensation gain
