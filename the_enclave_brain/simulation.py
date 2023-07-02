@@ -100,12 +100,12 @@ class Simulation:
     def get_forest_health(self, dt: float):
         """Computes the current forest health."""
         forest_health = self.forest_health.get_mean()
-        forest_health += (
+        forest_health -= (
             self.param("climate_change").get_mean()
             * self.config["climate_change"]["weight"]
             * dt
         )
-        forest_health += (
+        forest_health -= (
             self.param("human_activity").get_mean()
             * self.config["human_activity"]["weight"]
             * dt
@@ -129,29 +129,6 @@ class Simulation:
                 scene_intensity = (scene_val - 0.7) / 0.2
         fate_value = self.param("fate").get_mean()
         self.scene_intensity = min(1.0, scene_intensity * 0.7 + fate_value * 0.15 + (1.0 - forest_health) * 0.15)
-
-    def trigger_event_on_velocity(
-        self, event: str, param: Parameter, value_threshold=0.5, invert=False
-    ):
-        """Triggers an event if the param experiences fast changes."""
-        if self.event_till is not None:
-            return
-
-        value = param.get_mean()
-        velocity = param.get_velocity()
-        if abs(velocity) > VELOCITY_THRESHOLD:
-            if (
-                (not invert and value > value_threshold) or
-                (invert and value < value_threshold)
-            ) and self.scene != event:
-                print("triggering velocity event:", event)
-                self.handle_event(event, 30 * (1.0 + value))
-                self.scene_intensity += 0.1
-            elif (
-                (not invert and value < value_threshold) or
-                (invert and value > value_threshold)
-            ) and self.scene == event:
-                self.event_till = None
     
     def trigger_knob_event(
         self, event: str, param: Parameter, value_threshold=0.25
@@ -287,7 +264,7 @@ class Simulation:
             if roll < 0.01:
                 param = self.param(param_name)
                 value = param.get_mean()
-                change = (random.random() - 0.5) * 0.1
+                change = (random.random() - 0.5) * 0.2
                 next_value = min(1.0, max(0.0, value + change))
                 # print(f"setting value {param_name}:", next_value)
                 param.update_value(next_value)

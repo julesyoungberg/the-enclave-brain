@@ -26,8 +26,8 @@ AUDIO_CHUNK_SZ = 1024
 MUSIC_FOLDER = "/music"
 FOLEY_FOLDER = "/audio"
 
-# OUTPUT_DEVICE = "Macbook Pro Speakers"
-OUTPUT_DEVICE = "Speakers BlackHole"
+OUTPUT_DEVICE = "Macbook Pro Speakers"
+# OUTPUT_DEVICE = "Speakers BlackHole"
 # OUTPUT_DEVICE = "HDMI BlackHole"
 
 class Audio_controller:
@@ -88,6 +88,8 @@ class Audio_controller:
         
         subfolder_path = self.paths[new_scene]
         filenames = os.listdir(subfolder_path)
+        if len(filenames) < 1:
+            return
         file_to_play = random.sample(filenames, 1)
         self.load_audio(file_to_play[0], subfolder_path + "/" + file_to_play[0])
         self.play_audio(file_to_play[0])
