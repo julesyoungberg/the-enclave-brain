@@ -2,3 +2,7 @@ mido==1.2
 python-osc==1.8
 python-rtmidi==1.4
 simpy==4.0
+serial==0.0.97
+sounddevice==0.4.6
+soundfile==0.12.1
+pedalboard==0.7.4

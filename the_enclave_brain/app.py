@@ -6,9 +6,6 @@
 # - determines scene automations via randomized background and one hit cues
 # - and then sends out OSC via the event manager
 
-import threading
-
-from .control import control_loop
 from .controllers.layer_controller import LayerController
 from .controllers.lights_controller import LightsController
 from .controllers.light_flicker_controller import LightFlickerController
@@ -17,7 +14,7 @@ from .controllers import music_controller
 from .osc.init import INIT_EVENT
 from .osc.events import OSCEventManager
 from .simulation import Simulation
-import control
+from . import control
 
 uc_ctrl_idx_to_simulation_key = ['climate_change', 'human_activity', 'fate']
 
@@ -39,14 +36,12 @@ class App:
 
     def __init__(self):
         self.simulation = Simulation()
-        self.control_thread = threading.Thread(target=control_loop, args=(self,))
-        self.control_thread.start()
 
         self.event_manager = OSCEventManager()
         self.event_manager.add_event(INIT_EVENT)
 
         # set initial scene and create layer randomizers
-        self.scene = self.simulation.scene
+        self.scene = "storm_forest" # self.simulation.scene
         self.bg_controller = LayerController(
             self.event_manager, layer_type="bg", scene=self.scene
         )
@@ -61,13 +56,15 @@ class App:
         )
         ambient_audio_controller.initialize_filepaths()
         music_controller.initialize_filepaths()
+        music_controller.set_scene(self.scene)
+        ambient_audio_controller.set_scene(self.scene)
         
 
     def update(self, dt: float):
         new_ctrl_data = control.rx_uc_packet()
         while new_ctrl_data is not None:
             btn_or_knob, ctrl_idx, ctrl_val = new_ctrl_data
-            if btn_or_knob is 'p': # for "potentiometer"
+            if btn_or_knob == 'p': # for "potentiometer"
                 self.simulation.update_config(uc_ctrl_idx_to_simulation_key[ctrl_idx], ctrl_val)
             # elif btn_or_knob is 'b':
                 # TODO use ctrl_idx to determine what event is trigged
@@ -81,17 +78,17 @@ class App:
         # update simulation - computes scene data and 'commits' params
         self.simulation.update(dt)
 
-        scene_changed = self.scene != self.simulation.scene
+        # scene_changed = self.scene != self.simulation.scene
 
         # update controller discrete scene data when needed
-        if scene_changed:
-            self.scene = self.simulation.scene
-            print("\nSCENE CHANGED:", self.scene)
-            self.bg_controller.set_scene(self.scene)
-            self.fg_controller.set_scene(self.scene)
-            self.lights_controller.set_scene(self.scene)
-            ambient_audio_controller.set_scene(self.scene)
-            music_controller.set_scene(self.scene)
+        # if scene_changed:
+        #     self.scene = self.simulation.scene
+        #     print("\nSCENE CHANGED:", self.scene)
+        #     self.bg_controller.set_scene(self.scene)
+        #     self.fg_controller.set_scene(self.scene)
+        #     self.lights_controller.set_scene(self.scene)
+        #     ambient_audio_controller.set_scene(self.scene)
+        #     music_controller.set_scene(self.scene)
 
         # print(f"forest_health={self.simulation.forest_health.get_current_value()}, scene={self.scene}, scene_intensity={self.simulation.scene_intensity}")
         

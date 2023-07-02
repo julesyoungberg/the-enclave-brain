@@ -23,10 +23,10 @@ AUDIO_CHUNK_SZ = 1024
 
 audio_paths = {}
 # Use this path when running as a standalone test script
-# where_we_at_path = str(Path.cwd().resolve())
+where_we_at_path = str(Path.cwd().resolve())
 # Use this path when running as part of enclave
-where_we_at_path = str(Path.cwd().resolve().parent.parent)
-AUDIO_FOLDER = "\\audio"
+# where_we_at_path = str(Path.cwd().resolve().parent.parent)
+AUDIO_FOLDER = "/audio"
 
 SCENE_FILE_COUNTS = {
     "healthy_forest": 1,
@@ -41,27 +41,30 @@ SCENE_FILE_COUNTS = {
 
 # Missing audio files in your filepath? Download them from Jules' gdrive
 def initialize_filepaths():
-    audio_paths["healthy_forest"] = (where_we_at_path + AUDIO_FOLDER + "\\HEALTHY") # Looks like "path/audio/HEALTHY"
-    audio_paths["burning_forest"] = (where_we_at_path + AUDIO_FOLDER + "\\BURN")
-    audio_paths["dead_forest"] = (where_we_at_path + AUDIO_FOLDER + "\\BURNT")
-    audio_paths["growing_forest"] = (where_we_at_path + AUDIO_FOLDER + "\\GROWING")
-    audio_paths["storm_forest"] = (where_we_at_path + AUDIO_FOLDER + "\\STORM")
-    audio_paths["rain_forest"] = (where_we_at_path + AUDIO_FOLDER + "\\RAIN")
-    audio_paths["deforestation"] = (where_we_at_path + AUDIO_FOLDER + "\\HUMAN")
+    audio_paths["healthy_forest"] = (where_we_at_path + AUDIO_FOLDER + "/HEALTHY") # Looks like "path/audio/HEALTHY"
+    audio_paths["burning_forest"] = (where_we_at_path + AUDIO_FOLDER + "/BURN")
+    audio_paths["dead_forest"] = (where_we_at_path + AUDIO_FOLDER + "/BURNT")
+    audio_paths["growing_forest"] = (where_we_at_path + AUDIO_FOLDER + "/GROWING")
+    audio_paths["storm_forest"] = (where_we_at_path + AUDIO_FOLDER + "/STORM")
+    audio_paths["rain_forest"] = (where_we_at_path + AUDIO_FOLDER + "/RAIN")
+    audio_paths["deforestation"] = (where_we_at_path + AUDIO_FOLDER + "/HUMAN")
     # No sound design for this one??
-    # audio_paths["climate_change"] = (where_we_at_path + AUDIO_FOLDER + "\\CLIMATE_CHANGE")
+    # audio_paths["climate_change"] = (where_we_at_path + AUDIO_FOLDER + "/CLIMATE_CHANGE")
 
 # Scene param are from SCENES dict in scenes.py
 def set_scene(new_scene):
     for filename in audio_data:
         stop_audio(filename)
+
+    if new_scene not in audio_paths:
+        return
     
     subfolder_path = audio_paths[new_scene]
     filenames = os.listdir(subfolder_path)
     files_to_play = random.sample(filenames, SCENE_FILE_COUNTS[new_scene])
 
     for filename in files_to_play:
-        load_audio(filename, subfolder_path + "\\" + filename)
+        load_audio(filename, subfolder_path + "/" + filename)
         play_audio(filename)
 
 # Scene param are from SCENES dict in scenes.py
@@ -96,7 +99,7 @@ def update(scene):
                     print("we're looping forever, quik escape ambient")
                     break 
 
-            load_audio(newFile, subfolder_path + "\\" + newFile)
+            load_audio(newFile, subfolder_path + "/" + newFile)
             play_audio(newFile)
 
 

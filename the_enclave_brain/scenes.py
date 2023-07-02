@@ -5,7 +5,7 @@ MAIN_SCENES = [
     "healthy_forest",
     "burning_forest",
     "dead_forest",
-    "regrowth",
+    "growing_forest",
 ]
 
 EVENTS = ["climate_change", "deforestation", "rain_forest", "storm_forest"]
@@ -26,7 +26,7 @@ SCENES = {
         "fg": ["fires", "smoke"],
         "fg_blackout": 0.9,
     },
-    "regrowth": {
+    "growing_forest": {
         "bg": ["growth", "mushrooms"],
         "fg": ["rain", "mushrooms", "flowers"],
         "fg_blackout": 0.5,

@@ -94,9 +94,9 @@ class Simulation:
         """Computes the current forest health."""
         forest_health = self.forest_health.get_current_value()
         forest_health += (
-            self.param("climate_change").get_current_value()
+            (0.5 - self.param("climate_change").get_current_value())
             * self.config["climate_change"]["weight"]
-            * -dt
+            * dt
         )
         forest_health += (
             (0.5 - self.param("human_activity").get_current_value())
@@ -156,7 +156,7 @@ class Simulation:
             "deforestation", self.param("human_activity"), 0.75
         )
         self.trigger_event_on_velocity(
-            "regrowth", self.param("human_activity"), 0.25, invert=True
+            "growing_forest", self.param("human_activity"), 0.25, invert=True
         )
 
     def trigger_probability_event(self, event: str, param: Parameter, roll: float, weight=0.0001):
@@ -209,7 +209,7 @@ class Simulation:
             self.has_burnt = True
         elif forest_health < 0.5:
             if self.has_burnt:
-                self.scene = "regrowth"
+                self.scene = "growing_forest"
             else:
                 self.scene = "burning_forest"
         else:

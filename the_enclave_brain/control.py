@@ -56,8 +56,8 @@ def rx_uc_packet():
             return(new_ctrl_input.type, new_ctrl_input.idx, new_ctrl_input.val)
         else:
             return None
-    else:
-        print('start microcontroller first')
+    # else:
+    #     print('start microcontroller first')
 
 
 # WORKING EXAMPLE

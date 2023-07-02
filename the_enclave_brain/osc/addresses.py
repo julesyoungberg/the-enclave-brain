@@ -98,7 +98,7 @@ MADMAPPER_CONFIG = {
             "rainforest": cues(53, 5),
             "smoke": cues(56, 3),
             "spring": cues(59, 4),
-            "storms": cues(64, 2),
+            "storms": cues(64, 1),
             "summer": cues(67, 6),
             "winter": cues(72, 6),
             "blackout": cue(74, 1),
@@ -117,7 +117,7 @@ MADMAPPER_CONFIG = {
             "healthy_forest": cues_column(11, 3, start_row=2),
             "burning_forest": cues_column(12, 3, start_row=2),
             "dead_forest": cues_column(13, 3, start_row=2),
-            "regrowth": cues_column(11, 3, start_row=2), # @todo find different colors
+            "growing_forest": cues_column(11, 3, start_row=2), # @todo find different colors
             "climate_change": cues_column(14, 3, start_row=2),
             "deforestation": cues_column(15, 3, start_row=2),
             "rain_forest": cues_column(16, 3, start_row=2),
