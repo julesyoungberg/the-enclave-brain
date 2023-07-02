@@ -147,6 +147,10 @@ def play_audio(filename, isMusic=False):
         while current_index < audio_len[filename]:
             chunk = audio_data[filename][current_index:current_index+AUDIO_CHUNK_SZ]
             chunk *= volumes[filename]
+            if len(chunk) < AUDIO_CHUNK_SZ:
+                # NOTE: this line produces a dtype mismatch TypeError
+                # resolving this error by setting the correct dtype on np.zeros produces a pop
+                chunk = np.append(chunk, np.zeros([AUDIO_CHUNK_SZ - len(chunk), 2]), axis=0)
 
             # if fx_list is not None:
             #     effected = board(chunk, samplerates[filename], reset=False)
