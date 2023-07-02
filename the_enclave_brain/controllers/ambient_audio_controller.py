@@ -153,8 +153,8 @@ def stop_audio(filename):
         playhead_idx = audio_idx[filename]
 
         # Don't double-fade audio if we are already near the end
-        one_second = samplerates[filename]; # 1s is samplerate of samples
-        if(audio_len[filename] - playhead_idx > fade_out_samples + one_second):
+        fade_time = samplerates[filename] * 1.5 # 1s is samplerate of samples
+        if(audio_len[filename] - playhead_idx > fade_out_samples + fade_time):
             
             # Changing the length will make play_audio() stop @ appropriate time & handle cleanup
             audio_len[filename] = playhead_idx + fade_out_samples
