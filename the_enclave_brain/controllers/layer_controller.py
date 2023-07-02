@@ -80,7 +80,7 @@ class LayerController:
                     for cue in range(len(MADMAPPER_CONFIG[layer_name]["cues"][bin])):
                         self.scene_cues.append(
                             {
-                                "layer_index": layer_index + 1,
+                                "layer": f"{self.layer_type}{layer_index + 1}",
                                 "bin": bin,
                                 "cue_index": cue,
                             }
@@ -114,16 +114,20 @@ class LayerController:
                 return
 
         # choose new cue
-        # @todo always change layers for bg?
+        cues = self.cues
+        if self.layer_type == "bg":
+            other_layer_cues = [cue for cue in self.cues if cue["layer"] != self.current_layer]
+            if len(other_layer_cues) > 0:
+                cues = other_layer_cues
+                prev_cue_index = None
         if prev_cue_index is not None:
-            self.cue_index = random.randint(0, len(self.scene_cues) - 2)
+            self.cue_index = random.randint(0, len(cues) - 2)
             if self.cue_index >= prev_cue_index:
                 self.cue_index += 1
         else:
-            self.cue_index = random.randint(0, len(self.scene_cues) - 1)
+            self.cue_index = random.randint(0, len(cues) - 1)
         cue = self.scene_cues[self.cue_index]
-        layer_index = cue["layer_index"]
-        self.current_layer = f"{self.layer_type}{layer_index}"
+        self.current_layer = cue["layer"]
         self.current_bin = cue["bin"]
         self.current_index = cue["cue_index"]
 
