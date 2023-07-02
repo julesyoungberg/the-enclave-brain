@@ -12,10 +12,14 @@ from .control import control_loop
 from .controllers.layer_controller import LayerController
 from .controllers.lights_controller import LightsController
 from .controllers.light_flicker_controller import LightFlickerController
+from .controllers import ambient_audio_controller
+from .controllers import music_controller
 from .osc.init import INIT_EVENT
 from .osc.events import OSCEventManager
 from .simulation import Simulation
+import control
 
+uc_ctrl_idx_to_simulation_key = ['climate_change', 'human_activity', 'fate']
 
 class App:
     """
@@ -55,8 +59,22 @@ class App:
         self.light_flicker_controller = LightFlickerController(
             self.event_manager, self.simulation
         )
+        ambient_audio_controller.initialize_filepaths()
+        music_controller.initialize_filepaths()
+        
 
     def update(self, dt: float):
+        new_ctrl_data = control.rx_uc_packet()
+        while new_ctrl_data is not None:
+            btn_or_knob, ctrl_idx, ctrl_val = new_ctrl_data
+            if btn_or_knob is 'p': # for "potentiometer"
+                self.simulation.update_config(uc_ctrl_idx_to_simulation_key[ctrl_idx], ctrl_val)
+            # elif btn_or_knob is 'b':
+                # TODO use ctrl_idx to determine what event is trigged
+                # self.simulation.trigger_event()
+
+            new_ctrl_data = control.rx_uc_packet()
+
         # update light flicker controller before because it checks if params have changed
         self.light_flicker_controller.update(dt)
 
@@ -72,6 +90,8 @@ class App:
             self.bg_controller.set_scene(self.scene)
             self.fg_controller.set_scene(self.scene)
             self.lights_controller.set_scene(self.scene)
+            ambient_audio_controller.set_scene(self.scene)
+            music_controller.set_scene(self.scene)
 
         # print(f"forest_health={self.simulation.forest_health.get_current_value()}, scene={self.scene}, scene_intensity={self.simulation.scene_intensity}")
         
@@ -84,6 +104,8 @@ class App:
         self.bg_controller.update(dt)
         self.fg_controller.update(dt) #, force=scene_changed)
         self.lights_controller.update(dt)
+        ambient_audio_controller.update(self.scene)
+        music_controller.update(self.scene)
 
         # update the event manager last since the controllers may have added events
         self.event_manager.update(dt)
