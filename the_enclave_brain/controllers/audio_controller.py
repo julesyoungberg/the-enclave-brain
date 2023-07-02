@@ -237,7 +237,7 @@ class Audio_controller:
         vals = [
             simulation.param("climate_change").get_mean(),
             simulation.param("human_activity").get_mean(),
-            simulation.param("fate").get_mean()
+            simulation.param("entropy").get_mean()
         ]
         return vals
 

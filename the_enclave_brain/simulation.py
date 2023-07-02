@@ -39,7 +39,7 @@ class Simulation:
                 "weight": 0.001,
             },
             # this is a parameter controlling the randomness of fx and events
-            "fate": {
+            "entropy": {
                 "parameter": Parameter(0.5),
             },
         }
@@ -62,7 +62,7 @@ class Simulation:
     def update_config(self, key: str, value: float):
         """Updates a configuration parameter"""
         self.lock.acquire()
-        if key != "fate":
+        if key != "entropy":
             value = value * 2.0 - 1.0
         # print("Updating", key, "to", value)
         self.config[key]["parameter"].update_value(value)
@@ -127,7 +127,7 @@ class Simulation:
             scene_intensity = (scene_val - 0.5) / 0.3
             if scene_intensity > 1.0:
                 scene_intensity = (scene_val - 0.7) / 0.2
-        fate_value = self.param("fate").get_mean()
+        fate_value = self.param("entropy").get_mean()
         self.scene_intensity = min(1.0, scene_intensity * 0.7 + fate_value * 0.15 + (1.0 - forest_health) * 0.15)
     
     def trigger_knob_event(
@@ -189,7 +189,7 @@ class Simulation:
             return
 
         # trigger random events based on fate
-        fate_value = self.param("fate").get_mean() * 0.0001
+        fate_value = self.param("entropy").get_mean() * 0.0001
         fate_roll = random.random()
         if fate_roll < fate_value:
             fate_events = ["rain", "storm"]
