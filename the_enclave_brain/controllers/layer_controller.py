@@ -114,6 +114,7 @@ class LayerController:
                 return
 
         # choose new cue
+        # @todo always change layers for bg?
         if prev_cue_index is not None:
             self.cue_index = random.randint(0, len(self.scene_cues) - 2)
             if self.cue_index >= prev_cue_index:
