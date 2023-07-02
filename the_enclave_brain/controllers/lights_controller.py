@@ -1,9 +1,10 @@
 import math
 import random
 
-from ..osc.addresses import MADMAPPER_CONFIG, lights_color_address, lights_content_address
+from ..osc import control_cache
+from ..osc.addresses import MADMAPPER_CONFIG, lights_color_address, lights_content_address, lights_control_address
 from ..osc.events import OSCEventManager
-from ..osc.transitions import TriggerCue
+from ..osc.transitions import TriggerCue, OSCTransition
 
 
 class LightsController:
@@ -48,6 +49,15 @@ class LightsController:
         self.scene_intensity = scene_intensity
 
     def update(self, dt: float):
+        # update light speed according to the scene intensity
+        speed_address = lights_control_address("speed")
+        current_speed = control_cache.get_value(speed_address)
+        target_speed = self.scene_intensity
+        if target_speed != current_speed:
+            self.event_manager.add_event(
+                OSCTransition(address=speed_address, start=current_speed, end=target_speed, duration=0.0)
+            )
+
         content_index = round(
             self.scene_intensity * (len(MADMAPPER_CONFIG["lights"]["content"]) - 1)
         )

@@ -26,10 +26,13 @@ AUDIO_CHUNK_SZ = 1024
 MUSIC_FOLDER = "/music"
 FOLEY_FOLDER = "/audio"
 
+# OUTPUT_DEVICE = "Macbook Pro Speakers"
+OUTPUT_DEVICE = "Speakers BlackHole"
+# OUTPUT_DEVICE = "HDMI BlackHole"
+
 class Audio_controller:
 
     def __init__(self, sound_type):
-
         self.audio_data = {} # these should all be in one structure
         self.samplerates = {}
         self.volumes = {}
@@ -139,7 +142,7 @@ class Audio_controller:
         fade_out_curve = np.linspace(self.volumes[filename], 0, fade_out_samples)
         self.audio_data[filename][-fade_out_samples:] *= fade_out_curve[:, np.newaxis]
 
-        stream = sd.OutputStream(channels=self.audio_data[filename].shape[1])
+        stream = sd.OutputStream(channels=self.audio_data[filename].shape[1], device=OUTPUT_DEVICE)
         stream.start()
         self.streams[filename] = stream
 

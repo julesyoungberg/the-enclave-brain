@@ -1,3 +1,4 @@
+from ..config import MAX_LIGHT_BRIGHTNESS
 from ..osc.addresses import lights_control_address
 from ..osc.events import OSCEventManager, OSCEventStack, OSCEventSequence, OSCSleepEvent
 from ..osc.transitions import OSCFlicker
@@ -30,10 +31,12 @@ class LightFlickerController:
             OSCFlicker(
                 address=lights_control_address("tubes1_brightness"),
                 n_flicks=n_flicks,
+                high=MAX_LIGHT_BRIGHTNESS,
             ),
             OSCFlicker(
                 address=lights_control_address("tubes3_brightness"),
                 n_flicks=n_flicks,
+                high=MAX_LIGHT_BRIGHTNESS,
             ),
         ]
 
@@ -56,14 +59,17 @@ class LightFlickerController:
                         OSCFlicker(
                             address=lights_control_address("tubes2_brightness"),
                             n_flicks=1,
+                            high=MAX_LIGHT_BRIGHTNESS,
                         ),
                         OSCFlicker(
                             address=lights_control_address("lanterns1_brightness"),
                             n_flicks=1,
+                            high=MAX_LIGHT_BRIGHTNESS,
                         ),
                         OSCFlicker(
                             address=lights_control_address("lanterns2_brightness"),
                             n_flicks=1,
+                            high=MAX_LIGHT_BRIGHTNESS,
                         )
                     ])
                 ]),
@@ -77,19 +83,22 @@ class LightFlickerController:
                     OSCFlicker(
                         address=lights_control_address("tubes2_brightness"),
                         n_flicks=2,
+                        high=MAX_LIGHT_BRIGHTNESS,
                     ),
                 ]),
                 OSCFlicker(
                     address=lights_control_address("lanterns1_brightness"),
                     n_flicks=2,
-                    period=2.0
+                    period=2.0,
+                    high=MAX_LIGHT_BRIGHTNESS,
                 ),
                 OSCEventSequence([
                     OSCSleepEvent(1.0),
                     OSCFlicker(
                         address=lights_control_address("lanterns2_brightness"),
                         n_flicks=2,
-                        period=2.0
+                        period=2.0,
+                        high=MAX_LIGHT_BRIGHTNESS,
                     ),
                 ]),
             ]
@@ -102,17 +111,20 @@ class LightFlickerController:
                     OSCFlicker(
                         address=lights_control_address("tubes2_brightness"),
                         n_flicks=3,
+                        high=MAX_LIGHT_BRIGHTNESS,
                     ),
                 ]),
                 OSCFlicker(
                     address=lights_control_address("lanterns1_brightness"),
                     n_flicks=3,
+                    high=MAX_LIGHT_BRIGHTNESS,
                 ),
                 OSCEventSequence([
                     OSCSleepEvent(0.5),
                     OSCFlicker(
                         address=lights_control_address("lanterns2_brightness"),
                         n_flicks=3,
+                        high=MAX_LIGHT_BRIGHTNESS,
                     ),
                 ]),
             ]

@@ -129,6 +129,7 @@ MADMAPPER_CONFIG = {
             "tubes3_brightness": "/modules/TUBES_3_BRIGHTNESS/Inputs/Input_1",
             "lanterns1_brightness": "/modules/LANTERNS_1_BRIGHTNESS/Inputs/Input_1",
             "lanterns2_brightness": "/modules/LANTERNS_2_BRIGHTNESS/Inputs/Input_1",
+            "speed": "/Lights/Speed",
         },
     },
 }
