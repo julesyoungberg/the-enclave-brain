@@ -39,7 +39,7 @@ class OSCEventGroup(OSCEvent):
         events (list[OSCEvent]): A list of OSCEvent objects to be executed.
     """
 
-    def __init__(self, events: list[OSCEvent]):
+    def __init__(self, events):
         self.events = events
         # the address here is a dummy value
         # no osc messages are sent to the address since the step method is overriden

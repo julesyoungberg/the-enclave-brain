@@ -9,8 +9,7 @@
 from .controllers.layer_controller import LayerController
 from .controllers.lights_controller import LightsController
 from .controllers.light_flicker_controller import LightFlickerController
-from .controllers import ambient_audio_controller
-from .controllers import music_controller
+from .controllers.audio_controller import Audio_controller
 from .osc.init import INIT_EVENT
 from .osc.events import OSCEventManager
 from .simulation import Simulation
@@ -54,11 +53,11 @@ class App:
         self.light_flicker_controller = LightFlickerController(
             self.event_manager, self.simulation
         )
-        ambient_audio_controller.initialize_filepaths()
-        music_controller.initialize_filepaths()
-        music_controller.set_scene(self.scene)
-        ambient_audio_controller.set_scene(self.scene)
-        
+        self.foley_controller = Audio_controller("foley")
+        self.music_controller = Audio_controller("music")
+        self.foley_controller.set_scene(self.scene)
+        self.music_controller.set_scene(self.scene)
+
 
     def update(self, dt: float):
         new_ctrl_data = control.rx_uc_packet()
@@ -101,8 +100,9 @@ class App:
         self.bg_controller.update(dt)
         self.fg_controller.update(dt) #, force=scene_changed)
         self.lights_controller.update(dt)
-        ambient_audio_controller.update(self.scene)
-        music_controller.update(self.scene)
+        # ambient_audio_controller.update(self.scene, self.simulation)
+        self.foley_controller.update(self.scene, self.simulation)
+        self.music_controller.update(self.scene, self.simulation)
 
         # update the event manager last since the controllers may have added events
         self.event_manager.update(dt)
