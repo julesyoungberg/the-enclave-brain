@@ -56,17 +56,17 @@ class Audio_controller:
         # The ordering of these effects is critical!!
         self.board = Pedalboard()
 
-        if self.sound_type == 'music':
-            self.board.append(Distortion(drive_db=0))
-            self.board.append(Gain(gain_db=0))
-            self.board.append(LowpassFilter(cutoff_frequency_hz=LOWPASS_FILTER_MAX_Hz))
-            self.board.append(HighpassFilter(cutoff_frequency_hz=HIGHPASS_FILTER_MIN_Hz))
-        elif self.sound_type == 'foley':
-            self.board.append(Delay(delay_seconds=1,feedback=DELAY_FEEDBACK_MIN,mix=DELAY_MIX_MIN))
-            self.board.append(Reverb(room_size=0.5,wet_level=REVERB_WET_LEVEL_MIN,dry_level=REVERB_DRY_LEVEL_MAX))
-            self.board.append(Limiter(threshold_db=0))
-        else:
-            print("invalid sound type, no fx applied")
+        # if self.sound_type == 'music':
+        #     self.board.append(Distortion(drive_db=0))
+        #     self.board.append(Gain(gain_db=0))
+        #     self.board.append(LowpassFilter(cutoff_frequency_hz=LOWPASS_FILTER_MAX_Hz))
+        #     self.board.append(HighpassFilter(cutoff_frequency_hz=HIGHPASS_FILTER_MIN_Hz))
+        # elif self.sound_type == 'foley':
+        #     self.board.append(Delay(delay_seconds=1,feedback=DELAY_FEEDBACK_MIN,mix=DELAY_MIX_MIN))
+        #     self.board.append(Reverb(room_size=0.5,wet_level=REVERB_WET_LEVEL_MIN,dry_level=REVERB_DRY_LEVEL_MAX))
+        #     self.board.append(Limiter(threshold_db=0))
+        # else:
+        #     print("invalid sound type, no fx applied")
 
         where_we_at_path = str(Path.cwd().resolve())
 
@@ -213,15 +213,17 @@ class Audio_controller:
 
             self.file_active[filename] = 0
             
-            fade_out_samples = int(FADE_TIME_s * self.samplerates[filename])
             playhead_idx = self.audio_idx[filename]
 
-            # Don't double-fade audio if we are already near the end
-            fade_time = self.samplerates[filename] * FADE_TIME_s # 1s is samplerate of samples
-            if(self.audio_len[filename] - playhead_idx > fade_out_samples + fade_time):
+            fade_out_samples = int(FADE_TIME_s * self.samplerates[filename]) 
+            if(self.audio_len[filename] - playhead_idx > fade_out_samples):
+
+                # Add an extra buffer to account for audio player stopping one frame early
+                # If this isn't here, we get audio pops when files are stopped (ie. scene changes)
+                buffer_pad = AUDIO_CHUNK_SZ
                 
                 # Changing the length will make play_audio() stop @ appropriate time & handle cleanup
-                self.audio_len[filename] = playhead_idx + fade_out_samples
+                self.audio_len[filename] = playhead_idx + fade_out_samples + buffer_pad
 
                 # Create fade
                 fade_out_curve = np.linspace(self.volumes[filename], 0, fade_out_samples)
@@ -229,13 +231,14 @@ class Audio_controller:
                     self.audio_data[filename][playhead_idx+i] *= fade_out_curve[i]
 
                 # Add zeroes to the end to cover cases where we don't end on a frame boundary
-                for i in range(0, AUDIO_CHUNK_SZ):
+                # Do this for two audio chunks at the end to account for player stopping one frame early
+                for i in range(0, AUDIO_CHUNK_SZ + buffer_pad):
                     self.audio_data[filename][playhead_idx+fade_out_samples+i] = 0
                 
 
     def load_audio(self, filename, filepath):
         audio, samplerate = sf.read(filepath)
-        self.audio_data[filename] = audio.astype(np.float32)
+        self.audio_data[filename] = np.append(audio.astype(np.float32), np.zeros([1024, 2], dtype=np.float32), axis=0)
         self.audio_len[filename] = len(audio)
         self.audio_idx[filename] = 0
         self.samplerates[filename] = samplerate
@@ -264,38 +267,39 @@ class Audio_controller:
 
     # Expects normalized knob values (0-1)
     def knob_val_to_effect(self, knob_vals):
+        dummy = 1
 
-        if self.sound_type == "music":
-            # Distortion
-            self.board[0].drive_db = knob_vals[0]*DISTORTION_MAX_dB
-            self.board[1].gain_db = -knob_vals[0]*DISTORTION_MAX_dB # compensation gain
+        # if self.sound_type == "music":
+        #     # Distortion
+        #     self.board[0].drive_db = knob_vals[0]*DISTORTION_MAX_dB
+        #     self.board[1].gain_db = -knob_vals[0]*DISTORTION_MAX_dB # compensation gain
 
-            # Filters
-            lpf = 0
-            hpf = 0
-            if knob_vals[1] <= 0.5:
-                # Scale 0-0.5 to lowpassfilter min to lowpassfilter max
-                lpf = (knob_vals[1]/0.5)*(LOWPASS_FILTER_MAX_Hz-LOWPASS_FILTER_MIN_Hz)+LOWPASS_FILTER_MIN_Hz
-                hpf = HIGHPASS_FILTER_MIN_Hz
-            else:
-                lpf = LOWPASS_FILTER_MAX_Hz
-                # Scale 0.5-1 to highpassfilter min to highpassfilter max
-                hpf = (((knob_vals[1]-0.5)/0.5)*(HIGHPASS_FILTER_MAX_Hz-HIGHPASS_FILTER_MIN_Hz)+HIGHPASS_FILTER_MIN_Hz)
+        #     # Filters
+        #     lpf = 0
+        #     hpf = 0
+        #     if knob_vals[1] <= 0.5:
+        #         # Scale 0-0.5 to lowpassfilter min to lowpassfilter max
+        #         lpf = (knob_vals[1]/0.5)*(LOWPASS_FILTER_MAX_Hz-LOWPASS_FILTER_MIN_Hz)+LOWPASS_FILTER_MIN_Hz
+        #         hpf = HIGHPASS_FILTER_MIN_Hz
+        #     else:
+        #         lpf = LOWPASS_FILTER_MAX_Hz
+        #         # Scale 0.5-1 to highpassfilter min to highpassfilter max
+        #         hpf = (((knob_vals[1]-0.5)/0.5)*(HIGHPASS_FILTER_MAX_Hz-HIGHPASS_FILTER_MIN_Hz)+HIGHPASS_FILTER_MIN_Hz)
 
-            self.board[2].cutoff_frequency_hz = lpf
-            self.board[3].cutoff_frequency_hz = hpf
+        #     self.board[2].cutoff_frequency_hz = lpf
+        #     self.board[3].cutoff_frequency_hz = hpf
 
-        elif self.sound_type == 'foley':
-            knob3_max = 1
-            knob3_min = 0
-            # Delay
-            self.board[0].feedback = scale_value(knob_vals[2], knob3_min, knob3_max, DELAY_FEEDBACK_MIN, DELAY_FEEDBACK_MAX)
-            self.board[0].mix = scale_value(knob_vals[2], knob3_min, knob3_max, DELAY_MIX_MIN, DELAY_MIX_MAX)
+        # elif self.sound_type == 'foley':
+        #     knob3_max = 1
+        #     knob3_min = 0
+        #     # Delay
+        #     self.board[0].feedback = scale_value(knob_vals[2], knob3_min, knob3_max, DELAY_FEEDBACK_MIN, DELAY_FEEDBACK_MAX)
+        #     self.board[0].mix = scale_value(knob_vals[2], knob3_min, knob3_max, DELAY_MIX_MIN, DELAY_MIX_MAX)
 
-            # Reverb
-            self.board[1].room_size = scale_value(knob_vals[2], knob3_min, knob3_max, REVERB_ROOM_SIZE_MIN, REVERB_ROOM_SIZE_MAX)
-            self.board[1].wet_level = scale_value(knob_vals[2], knob3_min, knob3_max, REVERB_WET_LEVEL_MIN, REVERB_WET_LEVEL_MAX)
-            self.board[1].dry_level = scale_value(knob3_max-knob_vals[2], knob3_min, knob3_max, REVERB_DRY_LEVEL_MIN, REVERB_DRY_LEVEL_MAX)
+        #     # Reverb
+        #     self.board[1].room_size = scale_value(knob_vals[2], knob3_min, knob3_max, REVERB_ROOM_SIZE_MIN, REVERB_ROOM_SIZE_MAX)
+        #     self.board[1].wet_level = scale_value(knob_vals[2], knob3_min, knob3_max, REVERB_WET_LEVEL_MIN, REVERB_WET_LEVEL_MAX)
+        #     self.board[1].dry_level = scale_value(knob3_max-knob_vals[2], knob3_min, knob3_max, REVERB_DRY_LEVEL_MIN, REVERB_DRY_LEVEL_MAX)
 
 def scale_value(value, in_min, in_max, out_min, out_max):
     # Check if the input range is valid
