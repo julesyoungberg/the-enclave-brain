@@ -7,7 +7,7 @@ import random
 import time
 from ..simulation import Simulation
 from pathlib import Path
-from pedalboard import Pedalboard, Distortion, Gain, LowpassFilter, HighpassFilter, Reverb, Delay
+from pedalboard import Pedalboard, Distortion, Gain, LowpassFilter, HighpassFilter, Reverb, Delay, Limiter
 # import ... we expect custom SoundPlayer.py in same folder as this file
 
 DISTORTION_MIN_dB = 0
@@ -16,6 +16,16 @@ LOWPASS_FILTER_MIN_Hz = 300
 LOWPASS_FILTER_MAX_Hz = 22000
 HIGHPASS_FILTER_MIN_Hz = 30
 HIGHPASS_FILTER_MAX_Hz = 9000
+REVERB_WET_LEVEL_MIN = 0
+REVERB_WET_LEVEL_MAX = 0.6
+REVERB_DRY_LEVEL_MIN = 0.5
+REVERB_DRY_LEVEL_MAX = 1
+REVERB_ROOM_SIZE_MIN = 0.3
+REVERB_ROOM_SIZE_MAX = 0.6
+DELAY_FEEDBACK_MIN = 0.1
+DELAY_FEEDBACK_MAX = 0.35
+DELAY_MIX_MIN = 0
+DELAY_MIX_MAX = 0.5
 
 FADE_TIME_s = 1.5  # Fade duration in seconds
 AUDIO_CHUNK_SZ = 1024
@@ -52,8 +62,9 @@ class Audio_controller:
             self.board.append(LowpassFilter(cutoff_frequency_hz=LOWPASS_FILTER_MAX_Hz))
             self.board.append(HighpassFilter(cutoff_frequency_hz=HIGHPASS_FILTER_MIN_Hz))
         elif self.sound_type == 'foley':
-            self.board.append(Reverb()) # TODO add relevant params
-            self.board.append(Delay())
+            self.board.append(Delay(delay_seconds=1,feedback=DELAY_FEEDBACK_MIN,mix=DELAY_MIX_MIN))
+            self.board.append(Reverb(room_size=0.5,wet_level=REVERB_WET_LEVEL_MIN,dry_level=REVERB_DRY_LEVEL_MAX))
+            self.board.append(Limiter(threshold_db=0))
         else:
             print("invalid sound type, no fx applied")
 
@@ -266,11 +277,37 @@ class Audio_controller:
             self.board[2].cutoff_frequency_hz = lpf
             self.board[3].cutoff_frequency_hz = hpf
 
-        # elif(self.sound_type is 'foley'):
-        #     # **********************
-        #     # TODO do thing with knob_vals[2]
-        #     # ***********************
-        #     self.board[0].thingy = knob_vals[2]
+        elif self.sound_type == 'foley':
+            knob3_max = 1
+            knob3_min = 0
+            # Delay
+            self.board[0].feedback = scale_value(knob_vals[2], knob3_min, knob3_max, DELAY_FEEDBACK_MIN, DELAY_FEEDBACK_MAX)
+            self.board[0].mix = scale_value(knob_vals[2], knob3_min, knob3_max, DELAY_MIX_MIN, DELAY_MIX_MAX)
+
+            # Reverb
+            self.board[1].room_size = scale_value(knob_vals[2], knob3_min, knob3_max, REVERB_ROOM_SIZE_MIN, REVERB_ROOM_SIZE_MAX)
+            self.board[1].wet_level = scale_value(knob_vals[2], knob3_min, knob3_max, REVERB_WET_LEVEL_MIN, REVERB_WET_LEVEL_MAX)
+            self.board[1].dry_level = scale_value(knob3_max-knob_vals[2], knob3_min, knob3_max, REVERB_DRY_LEVEL_MIN, REVERB_DRY_LEVEL_MAX)
+
+def scale_value(value, in_min, in_max, out_min, out_max):
+    # Check if the input range is valid
+    if in_min >= in_max:
+        raise ValueError("Invalid input range: in_min must be less than in_max")
+    
+    # Check if the output range is valid
+    if out_min >= out_max:
+        raise ValueError("Invalid output range: out_min must be less than out_max")
+    
+    # Calculate the scaled value
+    scaled_value = (value - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
+    
+    # Clamp the scaled value within the output range
+    if scaled_value < out_min:
+        return out_min
+    elif scaled_value > out_max:
+        return out_max
+    else:
+        return scaled_value
 
 
 # # For testing
