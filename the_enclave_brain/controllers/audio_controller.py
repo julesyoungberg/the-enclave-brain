@@ -150,6 +150,7 @@ class Audio_controller:
         data = self.audio_data[filename]
 
         def callback(outdata, frames, time, status):
+            # sends a chunck of data to the output stream
             nonlocal current_frame
             chunksize = min(len(data) - current_frame, frames)
             chunk = data[current_frame:current_frame + chunksize]
@@ -173,6 +174,7 @@ class Audio_controller:
         self.streams[filename] = stream
 
         def audio_thread():
+            # wait for the stream to finish and clean up data afterwards
             with stream:
                 event.wait()
             del self.streams[filename]
