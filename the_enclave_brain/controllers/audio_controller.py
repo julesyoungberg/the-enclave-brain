@@ -157,11 +157,16 @@ class Audio_controller:
 
         # event = threading.Event()
 
+        # def callback(outdata, frames, time, status):
+        #     if self.audio_idx[filename] >= self.audio_len[filename]:
+        #         raise sd.CallbackStop()
+
         stream = sd.OutputStream(
             channels=self.audio_data[filename].shape[1],
             device=OUTPUT_DEVICE,
             samplerate=self.samplerates[filename],
             blocksize=AUDIO_CHUNK_SZ,
+            # callback=callback,
             # finished_callback=event.set,
         )
         stream.start()
@@ -183,12 +188,13 @@ class Audio_controller:
 
                 self.audio_idx[filename] += AUDIO_CHUNK_SZ # TODO combine self.audio_idx[filename] & current_index
                 current_index += AUDIO_CHUNK_SZ
-                # if len(chunk) < AUDIO_CHUNK_SZ:
-                #     raise sd.CallbackStop()
 
+            # print("waiting for stream to end")
             # event.wait()
+            print("ending stream")
             stream.stop()
             stream.close()
+            print("cleaning up")
             del self.streams[filename]
             del self.audio_data[filename]
             del self.samplerates[filename]
@@ -248,11 +254,12 @@ class Audio_controller:
 
 
     def get_effect_knob_vals(self, simulation:Simulation):
-        vals = [
-            simulation.param("climate_change").get_mean(),
-            simulation.param("human_activity").get_mean(),
-            simulation.param("fate").get_mean()
-        ]
+        vals = [0.0, 0.0, 0.0]
+        # vals = [
+        #     simulation.param("climate_change").get_mean(),
+        #     simulation.param("human_activity").get_mean(),
+        #     simulation.param("fate").get_mean()
+        # ]
         return vals
 
     # Expects normalized knob values (0-1)
