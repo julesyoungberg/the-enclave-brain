@@ -1,4 +1,5 @@
 import math
+import numpy as np
 from threading import Lock
 import random
 
@@ -30,16 +31,16 @@ class Simulation:
         self.config = {
             # this is a parameter controlling the impact of climate change
             "climate_change": {
-                "parameter": Parameter(0.0, lookback=1),
-                "weight": 0.001,
+                "parameter": Parameter(1.0, lookback=1),
+                "weight": 0.01,
             },
             # this is a paramter controlling the impact of human activity which can be good or bad
             "human_activity": {
-                "parameter": Parameter(0.0, lookback=1),
-                "weight": 0.001,
+                "parameter": Parameter(1.0, lookback=1),
+                "weight": 0.01,
             },
             # this is a parameter controlling the randomness of fx and events
-            "entropy": {
+            "fate": {
                 "parameter": Parameter(0.5),
             },
         }
@@ -62,7 +63,7 @@ class Simulation:
     def update_config(self, key: str, value: float):
         """Updates a configuration parameter"""
         self.lock.acquire()
-        if key != "entropy":
+        if key != "fate":
             value = value * 2.0 - 1.0
         # print("Updating", key, "to", value)
         self.config[key]["parameter"].update_value(value)
@@ -127,7 +128,7 @@ class Simulation:
             scene_intensity = (scene_val - 0.5) / 0.3
             if scene_intensity > 1.0:
                 scene_intensity = (scene_val - 0.7) / 0.2
-        fate_value = self.param("entropy").get_mean()
+        fate_value = self.param("fate").get_mean()
         self.scene_intensity = min(1.0, scene_intensity * 0.7 + fate_value * 0.15 + (1.0 - forest_health) * 0.15)
     
     def trigger_knob_event(
@@ -138,7 +139,7 @@ class Simulation:
 
         value = param.get_mean()
         velocity = param.get_velocity()
-        if (velocity < 0.0) != (value_threshold < 0.0):
+        if np.sign(velocity) != np.sign(value_threshold):
             return
         
         if (
@@ -189,7 +190,7 @@ class Simulation:
             return
 
         # trigger random events based on fate
-        fate_value = self.param("entropy").get_mean() * 0.0001
+        fate_value = self.param("fate").get_mean() * 0.0001
         fate_roll = random.random()
         if fate_roll < fate_value:
             fate_events = ["rain", "storm"]

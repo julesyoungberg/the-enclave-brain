@@ -36,8 +36,8 @@ AUDIO_CHUNK_SZ = 1024
 MUSIC_FOLDER = "/music"
 FOLEY_FOLDER = "/audio"
 
-# OUTPUT_DEVICE = "Macbook Pro Speakers"
-OUTPUT_DEVICE = "Speakers BlackHole"
+OUTPUT_DEVICE = "Macbook Pro Speakers"
+# OUTPUT_DEVICE = "Speakers BlackHole"
 # OUTPUT_DEVICE = "HDMI BlackHole"
 
 class Audio_controller:
@@ -155,39 +155,40 @@ class Audio_controller:
         fade_out_curve = np.linspace(self.volumes[filename], 0, fade_out_samples)
         self.audio_data[filename][-fade_out_samples:] *= fade_out_curve[:, np.newaxis]
 
-        event = threading.Event()
-
-        current_frame = 0
-        data = self.audio_data[filename]
-
-        def callback(outdata, frames, time, status):
-            # sends a chunck of data to the output stream
-            nonlocal current_frame
-            chunksize = min(len(data) - current_frame, frames)
-            chunk = data[current_frame:current_frame + chunksize]
-            # Effects
-            chunk = self.board(chunk, self.samplerates[filename], reset=False)
-            outdata[:chunksize] = chunk
-            self.audio_idx[filename] += AUDIO_CHUNK_SZ
-            if chunksize < frames:
-                outdata[chunksize:] = 0
-                raise sd.CallbackStop()
-            current_frame += chunksize
+        # event = threading.Event()
 
         stream = sd.OutputStream(
             channels=self.audio_data[filename].shape[1],
             device=OUTPUT_DEVICE,
             samplerate=self.samplerates[filename],
             blocksize=AUDIO_CHUNK_SZ,
-            callback=callback,
-            finished_callback=event.set
+            # finished_callback=event.set,
         )
+        stream.start()
         self.streams[filename] = stream
 
-        def audio_thread():
-            # wait for the stream to finish and clean up data afterwards
-            with stream:
-                event.wait()
+        def write_audio():
+            current_index = 0
+            while current_index < self.audio_len[filename]:
+                chunk = self.audio_data[filename][current_index:current_index+AUDIO_CHUNK_SZ]
+                chunk *= self.volumes[filename]
+                if len(chunk) < AUDIO_CHUNK_SZ:
+                    # NOTE: this line produces a dtype mismatch TypeError
+                    # resolving this error by setting the correct dtype on np.zeros produces a pop
+                    chunk = np.append(chunk, np.zeros([AUDIO_CHUNK_SZ - len(chunk), 2]), axis=0)
+
+                # Effects
+                effected = self.board(chunk, self.samplerates[filename], reset=False)
+                stream.write(effected)
+
+                self.audio_idx[filename] += AUDIO_CHUNK_SZ # TODO combine self.audio_idx[filename] & current_index
+                current_index += AUDIO_CHUNK_SZ
+                # if len(chunk) < AUDIO_CHUNK_SZ:
+                #     raise sd.CallbackStop()
+
+            # event.wait()
+            stream.stop()
+            stream.close()
             del self.streams[filename]
             del self.audio_data[filename]
             del self.samplerates[filename]
@@ -196,7 +197,7 @@ class Audio_controller:
             del self.audio_len[filename]
             del self.file_active[filename]
 
-        t = threading.Thread(target=audio_thread)
+        t = threading.Thread(target=write_audio)
         t.start()
 
 
@@ -210,7 +211,7 @@ class Audio_controller:
             playhead_idx = self.audio_idx[filename]
 
             # Don't double-fade audio if we are already near the end
-            fade_time = self.samplerates[filename] * 1.5 # 1s is samplerate of samples
+            fade_time = self.samplerates[filename] * FADE_TIME_s # 1s is samplerate of samples
             if(self.audio_len[filename] - playhead_idx > fade_out_samples + fade_time):
                 
                 # Changing the length will make play_audio() stop @ appropriate time & handle cleanup
@@ -250,7 +251,7 @@ class Audio_controller:
         vals = [
             simulation.param("climate_change").get_mean(),
             simulation.param("human_activity").get_mean(),
-            simulation.param("entropy").get_mean()
+            simulation.param("fate").get_mean()
         ]
         return vals
 

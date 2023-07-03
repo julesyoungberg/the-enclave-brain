@@ -102,7 +102,7 @@ class LightFlickerController:
                     ),
                 ]),
             ]
-        elif self.sim.param("entropy").has_changed():
+        elif self.sim.param("fate").has_changed():
             print("fate flicker")
             events = [
                 *self.flicker_side_tubes(n_flicks=3),
