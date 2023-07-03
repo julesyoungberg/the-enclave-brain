@@ -91,6 +91,8 @@ class Audio_controller:
             self.paths["climate_change"] = (where_we_at_path + FOLEY_FOLDER + "/CLIMATECHANGE")
         else:
             print("invalid sound type, Paths are fuked bro")
+        
+        self.lock = threading.Lock()
 
     # Scene param are from SCENES dict in scenes.py
     def set_scene(self, new_scene):
@@ -158,17 +160,18 @@ class Audio_controller:
         event = threading.Event()
 
         current_frame = 0
-        data = self.audio_data[filename]
 
         def callback(outdata, frames, time, status):
+            self.lock.acquire()
             # sends a chunck of data to the output stream
             nonlocal current_frame
-            chunksize = min(len(data) - current_frame, frames)
-            chunk = data[current_frame:current_frame + chunksize]
+            chunksize = min(self.audio_len[filename] - current_frame, frames)
+            chunk = self.audio_data[filename][current_frame:current_frame + chunksize]
             # Effects
-            chunk = self.board(chunk, self.samplerates[filename], reset=False)
+            # chunk = self.board(chunk, self.samplerates[filename], reset=False)
             outdata[:chunksize] = chunk
             self.audio_idx[filename] += AUDIO_CHUNK_SZ
+            self.lock.release()
             if chunksize < frames:
                 outdata[chunksize:] = 0
                 raise sd.CallbackStop()
@@ -202,6 +205,7 @@ class Audio_controller:
 
     # Triggers the audio to start fading out. Thread is killed after FADE_TIME_s
     def stop_audio(self, filename):
+        self.lock.acquire()
         if filename in self.streams:
 
             self.file_active[filename] = 0
@@ -224,6 +228,7 @@ class Audio_controller:
                 # Add zeroes to the end to cover cases where we don't end on a frame boundary
                 for i in range(0, AUDIO_CHUNK_SZ):
                     self.audio_data[filename][playhead_idx+fade_out_samples+i] = 0
+        self.lock.release()
                 
 
     def load_audio(self, filename, filepath):
@@ -247,11 +252,12 @@ class Audio_controller:
 
 
     def get_effect_knob_vals(self, simulation:Simulation):
-        vals = [
-            simulation.param("climate_change").get_mean(),
-            simulation.param("human_activity").get_mean(),
-            simulation.param("entropy").get_mean()
-        ]
+        vals = [0.0, 0.0, 0.0]
+        # vals = [
+        #     simulation.param("climate_change").get_mean(),
+        #     simulation.param("human_activity").get_mean(),
+        #     simulation.param("entropy").get_mean()
+        # ]
         return vals
 
     # Expects normalized knob values (0-1)

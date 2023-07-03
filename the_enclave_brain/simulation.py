@@ -253,18 +253,21 @@ class Simulation:
         self.commit_config_params()
 
         # @todo remove
-        # self.randomize_config_params()
+        self.randomize_config_params()
 
         self.lock.release()
 
     def randomize_config_params(self):
         """Randomize config params for testing"""
         for param_name in self.config:
-            roll = random.random()
-            if roll < 0.01:
-                param = self.param(param_name)
-                value = param.get_mean()
-                change = (random.random() - 0.5) * 0.2
-                next_value = min(1.0, max(0.0, value + change))
-                # print(f"setting value {param_name}:", next_value)
-                param.update_value(next_value)
+            param = self.param(param_name)
+            next_value = math.sin(self.current_time * 2.0)
+            param.update_value(next_value)
+            # roll = random.random()
+            # if roll < 0.01:
+            #     param = self.param(param_name)
+            #     value = param.get_mean()
+            #     change = (random.random() - 0.5) * 0.2
+            #     next_value = min(1.0, max(0.0, value + change))
+            #     # print(f"setting value {param_name}:", next_value)
+            #     param.update_value(next_value)
