@@ -191,10 +191,10 @@ class Audio_controller:
 
             # print("waiting for stream to end")
             # event.wait()
-            print("ending stream")
+            # print("ending stream")
             stream.stop()
             stream.close()
-            print("cleaning up")
+            # print("cleaning up")
             del self.streams[filename]
             del self.audio_data[filename]
             del self.samplerates[filename]

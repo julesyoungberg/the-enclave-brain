@@ -6,6 +6,7 @@
 # - determines scene automations via randomized background and one hit cues
 # - and then sends out OSC via the event manager
 
+from .controllers.flood_lights_controller import FloodLightsController
 from .controllers.layer_controller import LayerController
 from .controllers.lights_controller import LightsController
 from .controllers.light_flicker_controller import LightFlickerController
@@ -53,6 +54,7 @@ class App:
         self.light_flicker_controller = LightFlickerController(
             self.event_manager, self.simulation
         )
+        self.flood_lights_controller = FloodLightsController(self.scene)
         self.foley_controller = Audio_controller("foley")
         self.music_controller = Audio_controller("music")
         self.foley_controller.set_scene(self.scene)
@@ -94,6 +96,7 @@ class App:
             self.bg_controller.set_scene(self.scene)
             self.fg_controller.set_scene(self.scene)
             self.lights_controller.set_scene(self.scene)
+            self.flood_lights_controller.set_scene(self.scene)
             self.foley_controller.set_scene(self.scene)
             self.music_controller.set_scene(self.scene)
 
@@ -108,7 +111,7 @@ class App:
         self.bg_controller.update(dt)
         self.fg_controller.update(dt, force=scene_changed)
         self.lights_controller.update(dt)
-        # ambient_audio_controller.update(self.scene, self.simulation)
+        self.flood_lights_controller.update(dt)
         self.foley_controller.update(self.scene, self.simulation)
         self.music_controller.update(self.scene, self.simulation)
 
