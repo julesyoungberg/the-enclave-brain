@@ -5,6 +5,7 @@ import threading
 import os
 import random
 import time
+
 from ..simulation import Simulation
 from pathlib import Path
 from pedalboard import Pedalboard, Distortion, Gain, LowpassFilter, HighpassFilter, Reverb, Delay, Limiter
@@ -30,9 +31,6 @@ DELAY_MIX_MAX = 0.5
 FADE_TIME_s = 1.5  # Fade duration in seconds
 AUDIO_CHUNK_SZ = 1024
 
-# Use this path when running as a standalone test script
-# where_we_at_path = str(Path.cwd().resolve().parent.parent)
-# Use this path when running as part of enclave
 MUSIC_FOLDER = "/music"
 FOLEY_FOLDER = "/audio"
 
@@ -68,6 +66,9 @@ class Audio_controller:
         # else:
         #     print("invalid sound type, no fx applied")
 
+        # Use this path when running as a standalone test script
+        # where_we_at_path = str(Path.cwd().resolve().parent.parent)
+        # Use this path when running as part of enclave
         where_we_at_path = str(Path.cwd().resolve())
 
         # NOTE Missing music files in your filepath? Download them from Jules' gdrive
@@ -238,6 +239,7 @@ class Audio_controller:
 
     def load_audio(self, filename, filepath):
         audio, samplerate = sf.read(filepath)
+        # adding extra zeros here may not be necessary with the other zero padding
         self.audio_data[filename] = np.append(audio.astype(np.float32), np.zeros([1024, 2], dtype=np.float32), axis=0)
         self.audio_len[filename] = len(audio)
         self.audio_idx[filename] = 0
@@ -300,26 +302,6 @@ class Audio_controller:
         #     self.board[1].room_size = scale_value(knob_vals[2], knob3_min, knob3_max, REVERB_ROOM_SIZE_MIN, REVERB_ROOM_SIZE_MAX)
         #     self.board[1].wet_level = scale_value(knob_vals[2], knob3_min, knob3_max, REVERB_WET_LEVEL_MIN, REVERB_WET_LEVEL_MAX)
         #     self.board[1].dry_level = scale_value(knob3_max-knob_vals[2], knob3_min, knob3_max, REVERB_DRY_LEVEL_MIN, REVERB_DRY_LEVEL_MAX)
-
-def scale_value(value, in_min, in_max, out_min, out_max):
-    # Check if the input range is valid
-    if in_min >= in_max:
-        raise ValueError("Invalid input range: in_min must be less than in_max")
-    
-    # Check if the output range is valid
-    if out_min >= out_max:
-        raise ValueError("Invalid output range: out_min must be less than out_max")
-    
-    # Calculate the scaled value
-    scaled_value = (value - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
-    
-    # Clamp the scaled value within the output range
-    if scaled_value < out_min:
-        return out_min
-    elif scaled_value > out_max:
-        return out_max
-    else:
-        return scaled_value
 
 
 # # For testing

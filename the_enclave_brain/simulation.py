@@ -3,6 +3,7 @@ import numpy as np
 from threading import Lock
 import random
 
+from .utils import scale_value
 from .config import STEPS_PER_SECOND
 from .parameter import Parameter
 from .scenes import MAIN_SCENES, SCENES
@@ -46,10 +47,13 @@ class Simulation:
         }
         self.lock = Lock()
         self.event_till = None
+        self.event_length = None
         self.current_time = 0.0
         self.scene_intensity = 0.0
         self.event_forest_health_effect = 0.0
         self.has_died = False
+        self.has_burned = False
+        self.time_since_scene_change = 0
 
     def param(self, name: str) -> Parameter:
         """Helper for retrieving config params"""
@@ -76,6 +80,8 @@ class Simulation:
         
         self.scene = event
         self.event_till = self.current_time + duration
+        self.event_length = duration
+        self.time_since_scene_change = 0
 
         if event == "climate_change" or event == "deforestation":
             self.event_forest_health_effect = -0.1
@@ -131,6 +137,20 @@ class Simulation:
         fate_value = self.param("fate").get_mean()
         self.scene_intensity = min(1.0, scene_intensity * 0.7 + fate_value * 0.15 + (1.0 - forest_health) * 0.15)
     
+    def update_event_length(self):
+        scene_config = SCENES[self.scene]
+        if "max_length" not in scene_config or "min_length" not in scene_config:
+            return
+        
+        min_length = scene_config["min_length"]
+        max_length = scene_config["max_length"]
+        old_event_length = self.event_length
+        value = self.forest_health
+        if "more_health_is_longer" not in scene_config or not scene_config["more_health_is_longer"]:
+            value = 1.0 - value
+        self.event_length = scale_value(value, 0.0, 1.0, min_length, max_length)
+        self.event_till += self.event_length - old_event_length
+
     def trigger_knob_event(
         self, event: str, param: Parameter, value_threshold=0.25
     ):
@@ -192,7 +212,7 @@ class Simulation:
         # trigger random events based on fate
         fate_value = self.param("fate").get_mean() * 0.0001
         fate_roll = random.random()
-        if fate_roll < fate_value:
+        if fate_roll < fate_value and self.scene is not "burning_forest":
             fate_events = ["rain", "storm"]
             event = fate_events[random.randint(0, len(fate_events) - 1)]
             print(f"triggering fate event ({fate_roll} < {fate_value}):", event)
@@ -214,19 +234,33 @@ class Simulation:
         if self.event_till is not None:
             return
 
+        prev_scene = self.scene
         # trigger time based scenes
         forest_health = self.forest_health.get_mean()
         if forest_health < 0.2:
-            self.scene = "dead_forest"
-            self.has_died = True
-        elif forest_health < 0.5:
-            if self.has_died:
-                self.scene = "growing_forest"
+            if not self.has_burned:
+                self.handle_event("burning_forest", 20)
+                self.has_burned = True
             else:
-                self.scene = "burning_forest"
+                self.scene = "dead_forest"
+                self.has_died = True
+        elif forest_health < 0.5:
+            if self.has_died or self.has_burned:
+                self.handle_event("growing_forest", 20)
+                self.has_burned = False
+            else:
+                self.handle_event("burning_forest", 20)
+                self.has_burned = True
         else:
-            self.scene = "healthy_forest"
+            if self.has_burned:
+                self.handle_event("growing_forest", 20)
+            else:
+                self.scene = "healthy_forest"
             self.has_died = False
+            self.has_burned = False
+
+        if self.scene is not prev_scene:
+            self.time_since_scene_change = 0
 
     def commit_config_params(self):
         """Saves current config params for the current frame."""
@@ -238,12 +272,16 @@ class Simulation:
         self.lock.acquire()
 
         self.current_time += dt
+        self.time_since_scene_change += dt
 
         if self.event_till is not None:
             if self.current_time >= self.event_till:
                 self.event_till = None
+                self.event_length = None
 
         self.update_scene_data(dt)
+
+        self.update_event_length()
 
         self.trigger_velocity_events()
 
@@ -261,7 +299,7 @@ class Simulation:
     def randomize_config_params(self):
         """Randomize config params for testing"""
         for param_name in self.config:
-            next_value = math.sin(self.current_time)
+            next_value = math.sin(self.current_time*5)
             param = self.param(param_name)
             param.update_value(next_value)
             # roll = random.random()
