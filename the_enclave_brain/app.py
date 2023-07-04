@@ -16,7 +16,11 @@ from .osc.events import OSCEventManager
 from .simulation import Simulation
 from . import control
 
-uc_ctrl_idx_to_simulation_key = ['climate_change', 'human_activity', 'fate']
+uc_ctrl_idx_to_simulation_key = {
+    0: 'climate_change',
+    3: 'human_activity',
+    4: 'fate',
+}
 
 class App:
     """
@@ -68,9 +72,9 @@ class App:
         while new_ctrl_data is not None:
             received_data = True
             btn_or_knob, ctrl_idx, ctrl_val = new_ctrl_data
-            # print("Received data", btn_or_knob, ctrl_idx, ctrl_val)
+            print("Received data", btn_or_knob, ctrl_idx, ctrl_val)
             if btn_or_knob == b'p': # for "potentiometer"
-                if ctrl_idx < len(uc_ctrl_idx_to_simulation_key):
+                if ctrl_idx in uc_ctrl_idx_to_simulation_key:
                     self.simulation.update_config(uc_ctrl_idx_to_simulation_key[ctrl_idx], ctrl_val)
             # elif btn_or_knob is 'b':
                 # TODO use ctrl_idx to determine what event is trigged

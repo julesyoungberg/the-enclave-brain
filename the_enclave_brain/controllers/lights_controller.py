@@ -62,13 +62,17 @@ class LightsController:
 
         # update the content according to the scene intensity
         if content_index != self.current_content_index:
-            print("updating lights content")
+            print("updating lights content", content_index)
             self.current_content_index = content_index
-            self.event_manager.add_event(
-                TriggerCue(
-                    address=lights_content_address(self.current_content_index)
+            try:
+                self.event_manager.add_event(
+                    TriggerCue(
+                        address=lights_content_address(self.current_content_index)
+                    )
                 )
-            )
+            except Exception as e:
+                print(e)
+                return
 
         scene_changed = self.scene != self.prev_scene
         self.prev_scene = self.scene

@@ -32,17 +32,17 @@ class Simulation:
         self.config = {
             # this is a parameter controlling the impact of climate change
             "climate_change": {
-                "parameter": Parameter(1.0, lookback=1),
+                "parameter": Parameter(0.0, lookback=1),
                 "weight": 0.01,
             },
             # this is a paramter controlling the impact of human activity which can be good or bad
             "human_activity": {
-                "parameter": Parameter(1.0, lookback=1),
+                "parameter": Parameter(0.0, lookback=1),
                 "weight": 0.01,
             },
             # this is a parameter controlling the randomness of fx and events
             "fate": {
-                "parameter": Parameter(0.5),
+                "parameter": Parameter(0.5, lookback=1),
             },
         }
         self.lock = Lock()
@@ -106,7 +106,7 @@ class Simulation:
 
     def get_forest_health(self, dt: float):
         """Computes the current forest health."""
-        forest_health = self.forest_health.get_mean()
+        forest_health = self.forest_health.get_current_value()
         forest_health -= (
             self.param("climate_change").get_mean()
             * self.config["climate_change"]["weight"]
@@ -134,10 +134,14 @@ class Simulation:
             scene_intensity = (scene_val - 0.5) / 0.3
             if scene_intensity > 1.0:
                 scene_intensity = (scene_val - 0.7) / 0.2
-        fate_value = self.param("fate").get_mean()
-        self.scene_intensity = min(1.0, scene_intensity * 0.7 + fate_value * 0.15 + (1.0 - forest_health) * 0.15)
+        self.scene_intensity = scene_intensity
+        # fate_value = self.param("fate").get_mean()
+        # self.scene_intensity = min(1.0, scene_intensity * 0.7 + fate_value * 0.15 + (1.0 - forest_health) * 0.15)
     
     def update_event_length(self):
+        if self.event_length is None:
+            return
+
         scene_config = SCENES[self.scene]
         if "max_length" not in scene_config or "min_length" not in scene_config:
             return
@@ -145,7 +149,7 @@ class Simulation:
         min_length = scene_config["min_length"]
         max_length = scene_config["max_length"]
         old_event_length = self.event_length
-        value = self.forest_health
+        value = self.forest_health.get_current_value()
         if "more_health_is_longer" not in scene_config or not scene_config["more_health_is_longer"]:
             value = 1.0 - value
         self.event_length = scale_value(value, 0.0, 1.0, min_length, max_length)
@@ -159,13 +163,14 @@ class Simulation:
 
         value = param.get_mean()
         velocity = param.get_velocity()
-        if np.sign(velocity) != np.sign(value_threshold):
+        if np.sign(velocity) != np.sign(value_threshold) or abs(velocity) < VELOCITY_THRESHOLD:
             return
         
         if (
             (value_threshold > 0.0 and value > value_threshold) or
             (value_threshold < 0.0 and value < value_threshold)
         ):
+            print(f"event={event}, param_value={value}, velocity={velocity}, value_threshold={value_threshold}")
             print("triggering knob event:", event)
             self.handle_event(event, 30 * (1.0 + abs(value)))
 
@@ -236,7 +241,7 @@ class Simulation:
 
         prev_scene = self.scene
         # trigger time based scenes
-        forest_health = self.forest_health.get_mean()
+        forest_health = self.forest_health.get_current_value()
         if forest_health < 0.2:
             if not self.has_burned:
                 self.handle_event("burning_forest", 20)
@@ -292,7 +297,7 @@ class Simulation:
         self.commit_config_params()
 
         # @todo remove
-        self.randomize_config_params()
+        # self.randomize_config_params()
 
         self.lock.release()
 

@@ -34,5 +34,6 @@ class FloodLightsController:
 
         for light_idx, color in enumerate(colors):
             r, g, b = PALETTE[color]
+            print(f"sending flood light data: idx={light_idx}, r={r}, g={g}, b={b}")
             tx_floodlight_packet(light_idx, r, g, b)
 
