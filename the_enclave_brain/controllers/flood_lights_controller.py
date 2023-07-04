@@ -29,7 +29,8 @@ class FloodLightsController:
     def send_colors(self):
         for light_idx, color in enumerate(self.current_colors):
             r, g, b = color
-            print(f"sending flood light data: idx={light_idx}, r={r}, g={g}, b={b}")
+            # if light_idx == 0:
+            #     print(f"sending flood light data: idx={light_idx}, r={r}, g={g}, b={b}")
             tx_floodlight_packet(light_idx, r, g, b)
     
     def set_scene(self, scene: str):
@@ -37,6 +38,9 @@ class FloodLightsController:
             return
 
         next_colors = get_scene_colors(scene)
+        print("starting transition to scene", scene)
+        print("current colors", self.current_colors)
+        print("next colors", next_colors)
         self.transitions = [
             LightFadeController(
                 self.current_colors[0],
@@ -47,6 +51,7 @@ class FloodLightsController:
                 next_colors[1]
             ),
         ]
+        # self.current_colors = next_colors
         self.scene = scene
     
     def update(self, dt: float):
@@ -63,5 +68,8 @@ class FloodLightsController:
         self.send_colors()
 
         if self.transitions[0].done and self.transitions[1].done:
+            print("done transitioning to", self.scene)
+            print("current colors", self.current_colors)
+            print("scene colors", get_scene_colors(self.scene))
             self.transitions = []
 

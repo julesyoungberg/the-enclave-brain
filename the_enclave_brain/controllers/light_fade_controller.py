@@ -1,6 +1,6 @@
 from ..utils import scale_value
 
-FADE_SECONDS = 3.0
+FADE_SECONDS = 6.0
 
 
 class LightFadeController:
@@ -13,15 +13,17 @@ class LightFadeController:
     
     def update(self, dt: float):
         self.current_time += dt
+        progress = self.current_time / FADE_SECONDS
         for i in range(3):
-            self.current_color[i] = scale_value(
-                self.current_time,
-                0.0,
-                FADE_SECONDS,
-                self.start_color[i],
-                self.end_color[i]
-            )
-        if self.current_time >= FADE_SECONDS:
+            self.current_color[i] = progress * (self.end_color[i] - self.start_color[i]) + self.start_color[i]
+            # self.current_color[i] = scale_value(
+            #     self.current_time,
+            #     0.0,
+            #     FADE_SECONDS,
+            #     self.start_color[i],
+            #     self.end_color[i]
+            # )
+        if self.current_time > FADE_SECONDS:
             self.done = True
 
     def get_current_color(self):

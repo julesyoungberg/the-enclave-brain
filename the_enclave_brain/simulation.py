@@ -33,12 +33,12 @@ class Simulation:
             # this is a parameter controlling the impact of climate change
             "climate_change": {
                 "parameter": Parameter(0.0, lookback=1),
-                "weight": 0.01,
+                "weight": 0.003,
             },
             # this is a paramter controlling the impact of human activity which can be good or bad
             "human_activity": {
                 "parameter": Parameter(0.0, lookback=1),
-                "weight": 0.01,
+                "weight": 0.003,
             },
             # this is a parameter controlling the randomness of fx and events
             "fate": {
@@ -134,9 +134,9 @@ class Simulation:
             scene_intensity = (scene_val - 0.5) / 0.3
             if scene_intensity > 1.0:
                 scene_intensity = (scene_val - 0.7) / 0.2
-        self.scene_intensity = scene_intensity
-        # fate_value = self.param("fate").get_mean()
-        # self.scene_intensity = min(1.0, scene_intensity * 0.7 + fate_value * 0.15 + (1.0 - forest_health) * 0.15)
+        # self.scene_intensity = scene_intensity
+        fate_value = self.param("fate").get_mean()
+        self.scene_intensity = min(1.0, scene_intensity * 0.7 + fate_value * 0.3)
     
     def update_event_length(self):
         if self.event_length is None:
@@ -152,7 +152,8 @@ class Simulation:
         value = self.forest_health.get_current_value()
         if "more_health_is_longer" not in scene_config or not scene_config["more_health_is_longer"]:
             value = 1.0 - value
-        self.event_length = scale_value(value, 0.0, 1.0, min_length, max_length)
+        # self.event_length = scale_value(value, 0.0, 1.0, min_length, max_length)
+        self.event_lenght = value * (max_length - min_length) + min_length
         self.event_till += self.event_length - old_event_length
 
     def trigger_knob_event(
@@ -215,7 +216,7 @@ class Simulation:
             return
 
         # trigger random events based on fate
-        fate_value = self.param("fate").get_mean() * 0.0001
+        fate_value = self.param("fate").get_mean() * 0.0005
         fate_roll = random.random()
         if fate_roll < fate_value:
             fate_events = ["rain", "storm"]
