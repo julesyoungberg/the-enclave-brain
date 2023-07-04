@@ -73,9 +73,9 @@ class LayerTransition(OSCEventSequence):
         use_mask=False,
         fade=0.0,
     ):
-        # print(
-        #     f"\nLayerTransition: layer={layer}, cue_bin={cue_bin}, cue_index={cue_index}, fade={fade}, use_mask={use_mask}"
-        # )
+        print(
+            f"\nLayerTransition: layer={layer}, cue_bin={cue_bin}, cue_index={cue_index}, fade={fade}, use_mask={use_mask}"
+        )
         events = []
 
         is_one_shot = addresses.is_one_shot(layer, cue_bin, cue_index)
@@ -139,9 +139,9 @@ class LayerSwitch(OSCEventSequence):
         use_mask=False,
         fade_to_black=False,
     ):
-        # print(
-        #     f"\nLayerSwitch: prev_layer={prev_layer}, next_layer={next_layer}, cue_bin={cue_bin}, cue_index={cue_index}, fade={fade}, use_mask={use_mask}"
-        # )
+        print(
+            f"\nLayerSwitch: prev_layer={prev_layer}, next_layer={next_layer}, cue_bin={cue_bin}, cue_index={cue_index}, fade={fade}, use_mask={use_mask}"
+        )
         events = []
 
         swap_events = []
@@ -228,9 +228,9 @@ class TriggerCue(OSCEvent):
     """Represents an instantaneous OSC that triggers a cue for a specific layer, cue bank, and index."""
 
     def __init__(self, layer=None, cue_bin=None, cue_index=None, address=None):
-        # print(
-        #     f"TriggerCue: layer={layer}, cue_bin={cue_bin}, cue_index={cue_index}, address={address}"
-        # )
+        print(
+            f"TriggerCue: layer={layer}, cue_bin={cue_bin}, cue_index={cue_index}, address={address}"
+        )
         if (layer == None or cue_bin == None or cue_index == None) and address == None:
             raise Exception(
                 "Invalid cue config, must provide an address, or the layer, bin, and index"
@@ -259,9 +259,9 @@ class PlayOneShot(OSCEventSequence):
     """
 
     def __init__(self, layer: str, cue_bin: str, cue_index: int, fade=1.0):
-        # print(
-        #     f"PlayOneShot: layer={layer}, cue_bin={cue_bin}, cue_index={cue_index}, fade={fade}"
-        # )
+        print(
+            f"PlayOneShot: layer={layer}, cue_bin={cue_bin}, cue_index={cue_index}, fade={fade}"
+        )
         events = []
 
         # make sure the layer is blank (blackout)

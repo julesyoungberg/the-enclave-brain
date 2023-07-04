@@ -17,8 +17,8 @@ from .simulation import Simulation
 from . import control
 
 uc_ctrl_idx_to_simulation_key = {
-    0: 'climate_change',
-    3: 'human_activity',
+    3: 'climate_change',
+    0: 'human_activity',
     4: 'fate',
 }
 

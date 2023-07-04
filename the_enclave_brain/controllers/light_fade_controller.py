@@ -15,7 +15,13 @@ class LightFadeController:
         self.current_time += dt
         progress = self.current_time / FADE_SECONDS
         for i in range(3):
-            self.current_color[i] = progress * (self.end_color[i] - self.start_color[i]) + self.start_color[i]
+            self.current_color[i] = min(
+                1.0,
+                max(
+                    0.0,
+                    progress * (self.end_color[i] - self.start_color[i]) + self.start_color[i]
+                )
+            )
             # self.current_color[i] = scale_value(
             #     self.current_time,
             #     0.0,

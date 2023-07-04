@@ -33,12 +33,12 @@ class Simulation:
             # this is a parameter controlling the impact of climate change
             "climate_change": {
                 "parameter": Parameter(0.0, lookback=1),
-                "weight": 0.003,
+                "weight": 0.005,
             },
             # this is a paramter controlling the impact of human activity which can be good or bad
             "human_activity": {
                 "parameter": Parameter(0.0, lookback=1),
-                "weight": 0.003,
+                "weight": 0.005,
             },
             # this is a parameter controlling the randomness of fx and events
             "fate": {
@@ -216,7 +216,7 @@ class Simulation:
             return
 
         # trigger random events based on fate
-        fate_value = self.param("fate").get_mean() * 0.0005
+        fate_value = self.param("fate").get_mean() * 0.001
         fate_roll = random.random()
         if fate_roll < fate_value:
             fate_events = ["rain", "storm"]

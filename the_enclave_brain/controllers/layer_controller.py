@@ -131,6 +131,9 @@ class LayerController:
         self.current_bin = cue["bin"]
         self.current_index = cue["cue_index"]
 
+        if self.current_event is not None and not self.current_event.done:
+            self.current_event.done = True
+
         # transition to new cue as needed
         if prev_layer is not None and prev_layer != self.current_layer:
             self.current_event = LayerSwitch(
