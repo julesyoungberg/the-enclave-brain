@@ -61,6 +61,7 @@ class App:
         self.flood_lights_controller = FloodLightsController(self.scene)
         self.foley_controller = Audio_controller("foley")
         self.music_controller = Audio_controller("music")
+        self.quotes_controller = Audio_controller("quotes")
         self.foley_controller.set_scene(self.scene)
         self.music_controller.set_scene(self.scene)
         control.init_uc_comms()
@@ -76,9 +77,8 @@ class App:
             if btn_or_knob == b'p': # for "potentiometer"
                 if ctrl_idx in uc_ctrl_idx_to_simulation_key:
                     self.simulation.update_config(uc_ctrl_idx_to_simulation_key[ctrl_idx], ctrl_val)
-            # elif btn_or_knob is 'b':
-                # TODO use ctrl_idx to determine what event is trigged
-                # self.simulation.trigger_event()
+            elif btn_or_knob is 'b':
+                self.quotes_controller.trigger_one_shot()
 
             new_ctrl_data = control.rx_uc_packet()
 

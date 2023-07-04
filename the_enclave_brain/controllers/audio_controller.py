@@ -50,6 +50,7 @@ class Audio_controller:
         self.streams = {}
         self.paths = {}
         self.sound_type = sound_type
+        self.file_idx = -1
 
         # The ordering of these effects is critical!!
         self.board = Pedalboard()
@@ -90,6 +91,8 @@ class Audio_controller:
             self.paths["rain"] = (where_we_at_path + FOLEY_FOLDER + "/RAIN")
             self.paths["deforestation"] = (where_we_at_path + FOLEY_FOLDER + "/HUMAN")
             self.paths["climate_change"] = (where_we_at_path + FOLEY_FOLDER + "/CLIMATECHANGE")
+        elif self.sound_type == 'quotes':
+            self.paths["quotes"] = where_we_at_path + "/quotes"
         else:
             print("invalid sound type, Paths are fuked bro")
 
@@ -105,6 +108,16 @@ class Audio_controller:
         file_to_play = random.sample(filenames, 1)
         self.load_audio(file_to_play[0], subfolder_path + "/" + file_to_play[0])
         self.play_audio(file_to_play[0])
+    
+    def trigger_one_shot(self):
+        if len(self.streams) > 0:
+            return
+        folder_path = self.paths["quotes"]
+        filenames = os.listdir(folder_path)
+        self.file_idx = (self.file_idx + 1) % len(filenames)
+        file_to_play = filenames[self.file_idx]
+        self.load_audio(file_to_play, folder_path + "/" + file_to_play)
+        self.play_audio(file_to_play)
 
     # Scene param are from SCENES dict in scenes.py
     # Call this every 100ms or so. Longer intervals will leave more of a gap on sound fadeout/fadein
@@ -119,6 +132,9 @@ class Audio_controller:
 
                 # Mark the audio file that's finishing
                 self.file_active[filename] = 0
+
+                if self.sound_type == "quotes":
+                    continue
 
                 # Get list of all possible files for scene
                 subfolder_path = self.paths[scene]
