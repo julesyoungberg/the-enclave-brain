@@ -112,7 +112,7 @@ MADMAPPER_CONFIG = {
         "controls": control_addresses("Background_1"),
     },
     "lights": {
-        "content": cues(1, 5, start_column=11),
+        "content": cues(1, 4, start_column=11),
         "colors": {
             "healthy_forest": cues_column(11, 3, start_row=2),
             "burning_forest": cues_column(12, 3, start_row=2),

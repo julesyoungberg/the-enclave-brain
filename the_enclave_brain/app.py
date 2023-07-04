@@ -58,13 +58,14 @@ class App:
         self.light_flicker_controller = LightFlickerController(
             self.event_manager, self.simulation
         )
-        self.flood_lights_controller = FloodLightsController(self.scene)
         self.foley_controller = Audio_controller("foley")
         self.music_controller = Audio_controller("music")
         self.quotes_controller = Audio_controller("quotes")
         self.foley_controller.set_scene(self.scene)
         self.music_controller.set_scene(self.scene)
         control.init_uc_comms()
+        # this must happen after the serial port is initialized
+        self.flood_lights_controller = FloodLightsController(self.scene)
 
 
     def update(self, dt: float):
@@ -73,11 +74,11 @@ class App:
         while new_ctrl_data is not None:
             received_data = True
             btn_or_knob, ctrl_idx, ctrl_val = new_ctrl_data
-            print("Received data", btn_or_knob, ctrl_idx, ctrl_val)
             if btn_or_knob == b'p': # for "potentiometer"
                 if ctrl_idx in uc_ctrl_idx_to_simulation_key:
                     self.simulation.update_config(uc_ctrl_idx_to_simulation_key[ctrl_idx], ctrl_val)
-            elif btn_or_knob is 'b':
+            elif btn_or_knob == b'b':
+                print("Received data", btn_or_knob, ctrl_idx, ctrl_val)
                 self.quotes_controller.trigger_one_shot()
 
             new_ctrl_data = control.rx_uc_packet()
@@ -112,7 +113,7 @@ class App:
         self.lights_controller.set_scene_intensity(self.simulation.scene_intensity)
 
         # update controllers
-        self.bg_controller.update(dt)
+        self.bg_controller.update(dt, force=scene_changed)
         self.fg_controller.update(dt, force=scene_changed)
         self.lights_controller.update(dt)
         self.flood_lights_controller.update(dt)

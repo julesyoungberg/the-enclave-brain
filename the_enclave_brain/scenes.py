@@ -27,7 +27,7 @@ SCENES = {
     },
     "dead_forest": {
         "bg": ["dead"],
-        "fg": ["fires", "smoke"],
+        "fg": ["smoke"], #, "fires"]
         "fg_blackout": 0.9,
         "flood_lights": ["brown", "grey"],
     },

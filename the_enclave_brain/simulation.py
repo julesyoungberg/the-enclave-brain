@@ -62,7 +62,7 @@ class Simulation:
     def print_config(self):
         for key in self.config:
             print(f"{key}={round(self.param(key).get_mean(), 3)}", end="\t")
-        print("")
+        print(f"forest_health={self.forest_health.get_current_value()}")
 
     def update_config(self, key: str, value: float):
         """Updates a configuration parameter"""
@@ -217,7 +217,7 @@ class Simulation:
         # trigger random events based on fate
         fate_value = self.param("fate").get_mean() * 0.0001
         fate_roll = random.random()
-        if fate_roll < fate_value and self.scene is not "burning_forest":
+        if fate_roll < fate_value:
             fate_events = ["rain", "storm"]
             event = fate_events[random.randint(0, len(fate_events) - 1)]
             print(f"triggering fate event ({fate_roll} < {fate_value}):", event)

@@ -34,8 +34,8 @@ AUDIO_CHUNK_SZ = 1024
 MUSIC_FOLDER = "/music"
 FOLEY_FOLDER = "/audio"
 
-OUTPUT_DEVICE = "Macbook Pro Speakers"
-# OUTPUT_DEVICE = "Speakers BlackHole"
+# OUTPUT_DEVICE = "Macbook Pro Speakers"
+OUTPUT_DEVICE = "Speakers BlackHole"
 # OUTPUT_DEVICE = "HDMI BlackHole"
 
 class Audio_controller:
@@ -117,7 +117,7 @@ class Audio_controller:
         self.file_idx = (self.file_idx + 1) % len(filenames)
         file_to_play = filenames[self.file_idx]
         self.load_audio(file_to_play, folder_path + "/" + file_to_play)
-        self.play_audio(file_to_play)
+        self.play_audio(file_to_play, fade_time=0.2)
 
     # Scene param are from SCENES dict in scenes.py
     # Call this every 100ms or so. Longer intervals will leave more of a gap on sound fadeout/fadein
@@ -161,14 +161,14 @@ class Audio_controller:
                 self.load_audio(newFile, subfolder_path + "/" + newFile)
                 self.play_audio(newFile)
 
-    def play_audio(self, filename):
+    def play_audio(self, filename, fade_time=FADE_TIME_s):
         # Fade in
-        fade_in_samples = int(FADE_TIME_s * self.samplerates[filename])
+        fade_in_samples = int(fade_time * self.samplerates[filename])
         fade_in_curve = np.linspace(0, self.volumes[filename], fade_in_samples)
         self.audio_data[filename][:fade_in_samples] *= fade_in_curve[:, np.newaxis]
 
         # Fade out
-        fade_out_samples = int(FADE_TIME_s * self.samplerates[filename])
+        fade_out_samples = int(fade_time * self.samplerates[filename])
         fade_out_curve = np.linspace(self.volumes[filename], 0, fade_out_samples)
         self.audio_data[filename][-fade_out_samples:] *= fade_out_curve[:, np.newaxis]
 
