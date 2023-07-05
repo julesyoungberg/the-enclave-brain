@@ -6,6 +6,7 @@ import os
 import random
 import time
 
+from ..scenes import SCENES
 from ..simulation import Simulation
 from pathlib import Path
 from pedalboard import Pedalboard, Distortion, Gain, LowpassFilter, HighpassFilter, Reverb, Delay, Limiter
@@ -92,7 +93,8 @@ class Audio_controller:
             self.paths["deforestation"] = (where_we_at_path + FOLEY_FOLDER + "/HUMAN")
             self.paths["climate_change"] = (where_we_at_path + FOLEY_FOLDER + "/CLIMATECHANGE")
         elif self.sound_type == 'quotes':
-            self.paths["quotes"] = where_we_at_path + "/quotes"
+            for scene in SCENES:
+                self.paths[scene] = where_we_at_path + "/quotes/" + scene
         else:
             print("invalid sound type, Paths are fuked bro")
 
@@ -109,10 +111,10 @@ class Audio_controller:
         self.load_audio(file_to_play[0], subfolder_path + "/" + file_to_play[0])
         self.play_audio(file_to_play[0])
     
-    def trigger_one_shot(self):
+    def trigger_one_shot(self, scene):
         if len(self.streams) > 0:
             return
-        folder_path = self.paths["quotes"]
+        folder_path = self.paths[scene]
         filenames = os.listdir(folder_path)
         self.file_idx = (self.file_idx + 1) % len(filenames)
         file_to_play = filenames[self.file_idx]

@@ -79,7 +79,7 @@ class App:
                     self.simulation.update_config(uc_ctrl_idx_to_simulation_key[ctrl_idx], ctrl_val)
             elif btn_or_knob == b'b':
                 print("Received data", btn_or_knob, ctrl_idx, ctrl_val)
-                self.quotes_controller.trigger_one_shot()
+                self.quotes_controller.trigger_one_shot(self.simulation.scene)
 
             new_ctrl_data = control.rx_uc_packet()
 
