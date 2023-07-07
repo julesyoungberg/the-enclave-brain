@@ -27,7 +27,7 @@ MADMAPPER_CONFIG = {
             "falling_trees": [cue(19, 1, one_shot=True, clip_length=10)],
             "fires": cues(24, 4),
             "flowers": cues(29, 2),
-            "forest": cues(34, 1),
+            # "forest": cues(34, 1),
             "mushrooms": cues(42, 1),
             "rain": cues(47, 2),
             "storms": cues(61, 3),

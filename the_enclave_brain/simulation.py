@@ -237,7 +237,7 @@ class Simulation:
 
     def set_main_scene(self):
         """Sets the main scene if there is no current event"""
-        if self.event_till is not None:
+        if self.event_till is not None or self.time_since_scene_change < 15.0:
             return
 
         prev_scene = self.scene

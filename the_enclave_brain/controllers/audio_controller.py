@@ -36,8 +36,10 @@ MUSIC_FOLDER = "/music"
 FOLEY_FOLDER = "/audio"
 
 # OUTPUT_DEVICE = "Macbook Pro Speakers"
-OUTPUT_DEVICE = "Speakers BlackHole"
+# OUTPUT_DEVICE = "Speakers BlackHole"
 # OUTPUT_DEVICE = "HDMI BlackHole"
+# OUTPUT_DEVICE = "External Headphones"
+OUTPUT_DEVICE = "Headphones BlackHole"
 
 class Audio_controller:
 
@@ -52,6 +54,7 @@ class Audio_controller:
         self.paths = {}
         self.sound_type = sound_type
         self.file_idx = -1
+        self.lock = threading.Lock()
 
         # The ordering of these effects is critical!!
         self.board = Pedalboard()
@@ -100,6 +103,7 @@ class Audio_controller:
 
     # Scene param are from SCENES dict in scenes.py
     def set_scene(self, new_scene):
+        self.lock.acquire()
         for filename in self.audio_data:
             self.stop_audio(filename)
         
@@ -110,6 +114,7 @@ class Audio_controller:
         file_to_play = random.sample(filenames, 1)
         self.load_audio(file_to_play[0], subfolder_path + "/" + file_to_play[0])
         self.play_audio(file_to_play[0])
+        self.lock.release()
     
     def trigger_one_shot(self, scene):
         if len(self.streams) > 0:
@@ -124,6 +129,7 @@ class Audio_controller:
     # Scene param are from SCENES dict in scenes.py
     # Call this every 100ms or so. Longer intervals will leave more of a gap on sound fadeout/fadein
     def update(self, scene, simulation):
+        self.lock.acquire()
         # Update FX
         knob_vals = self.get_effect_knob_vals(simulation)
         self.knob_val_to_effect(knob_vals)
@@ -162,6 +168,7 @@ class Audio_controller:
 
                 self.load_audio(newFile, subfolder_path + "/" + newFile)
                 self.play_audio(newFile)
+        self.lock.release()
 
     def play_audio(self, filename, fade_time=FADE_TIME_s):
         # Fade in
@@ -214,6 +221,7 @@ class Audio_controller:
             stream.stop()
             stream.close()
             # print("cleaning up")
+            self.lock.acquire()
             del self.streams[filename]
             del self.audio_data[filename]
             del self.samplerates[filename]
@@ -221,6 +229,7 @@ class Audio_controller:
             del self.audio_idx[filename]
             del self.audio_len[filename]
             del self.file_active[filename]
+            self.lock.release()
 
         t = threading.Thread(target=write_audio)
         t.start()

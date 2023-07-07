@@ -31,7 +31,10 @@ class FloodLightsController:
             r, g, b = color
             # if light_idx == 0:
             #     print(f"sending flood light data: idx={light_idx}, r={r}, g={g}, b={b}")
-            tx_floodlight_packet(light_idx, r, g, b)
+            scale = 1.0
+            if light_idx == 1:
+                scale = 0.25
+            tx_floodlight_packet(light_idx, int(float(r) * scale), int(float(g) * scale), int(float(b) * scale))
     
     def set_scene(self, scene: str):
         if scene == self.scene:

@@ -83,8 +83,8 @@ class App:
 
             new_ctrl_data = control.rx_uc_packet()
 
-        if received_data:
-            self.simulation.print_config()
+        # if received_data:
+        #     self.simulation.print_config()
 
         # update light flicker controller before because it checks if params have changed
         self.light_flicker_controller.update(dt)
