@@ -14,6 +14,6 @@ def simulation_loop(app: App, env: simpy.Environment, tick: float):
 
 if __name__ == "__main__":
     app = App()
-    env = simpy.rt.RealtimeEnvironment()
-    env.process(simulation_loop(app, env, TIME_STEP_SECONDS))
-    env.run()
+    env = simpy.rt.RealtimeEnvironment(strict=False)
+    proc = env.process(simulation_loop(app, env, TIME_STEP_SECONDS))
+    env.run(until=proc)

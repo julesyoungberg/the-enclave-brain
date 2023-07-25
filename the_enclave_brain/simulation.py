@@ -10,6 +10,18 @@ from .scenes import MAIN_SCENES, SCENES
 
 VELOCITY_THRESHOLD = 0.1  # needs testing
 
+SCENE_SEQUENCE = [
+    "healthy_forest",
+    "deforestation",
+    "climate_change",
+    "storm",
+    "burning_forest",
+    "dead_forest",
+    "rain",
+    "growing_forest",
+]
+
+SCENE_LENGTH = 60.0
 
 class Simulation:
     """
@@ -27,7 +39,7 @@ class Simulation:
     """
 
     def __init__(self):
-        self.scene = MAIN_SCENES[0]
+        self.scene = SCENE_SEQUENCE[0]
         self.forest_health = Parameter(1.0, lookback=1)
         self.config = {
             # this is a parameter controlling the impact of climate change
@@ -54,6 +66,7 @@ class Simulation:
         self.has_died = False
         self.has_burned = False
         self.time_since_scene_change = 0
+        self.scene_index = 0
 
     def param(self, name: str) -> Parameter:
         """Helper for retrieving config params"""
@@ -66,12 +79,12 @@ class Simulation:
 
     def update_config(self, key: str, value: float):
         """Updates a configuration parameter"""
-        self.lock.acquire()
+        # self.lock.acquire()
         if key != "fate":
             value = value * 2.0 - 1.0
         # print("Updating", key, "to", value)
         self.config[key]["parameter"].update_value(value)
-        self.lock.release()
+        # self.lock.release()
 
     def handle_event(self, event: str, duration=30.0):
         """Set scene to event and determine effect on forest health."""
@@ -94,7 +107,7 @@ class Simulation:
 
     def trigger_event(self, event: str):
         """Trigger a given event."""
-        self.lock.acquire()
+        # self.lock.acquire()
 
         if event == "reset":
             self.forest_health = Parameter(1.0, lookback=STEPS_PER_SECOND)
@@ -102,7 +115,7 @@ class Simulation:
         else:
             self.handle_event(event)
 
-        self.lock.release()
+        # self.lock.release()
 
     def get_forest_health(self, dt: float):
         """Computes the current forest health."""
@@ -275,32 +288,41 @@ class Simulation:
 
     def update(self, dt: float):
         """Main simulation update logic."""
-        self.lock.acquire()
+        # self.lock.acquire()
 
         self.current_time += dt
         self.time_since_scene_change += dt
 
-        if self.event_till is not None:
-            if self.current_time >= self.event_till:
-                self.event_till = None
-                self.event_length = None
+        if self.time_since_scene_change < SCENE_LENGTH:
+            return
+        
+        self.scene_index = (self.scene_index + 1) % len(SCENE_SEQUENCE)
+        self.scene = SCENE_SEQUENCE[self.scene_index]
+        self.time_since_scene_change = 0
 
-        self.update_scene_data(dt)
+        self.scene_intensity = math.sin(self.current_time * 0.5)
 
-        self.update_event_length()
+        # if self.event_till is not None:
+        #     if self.current_time >= self.event_till:
+        #         self.event_till = None
+        #         self.event_length = None
 
-        self.trigger_velocity_events()
+        # self.update_scene_data(dt)
 
-        self.trigger_fate_events()
+        # self.update_event_length()
 
-        self.set_main_scene()
+        # self.trigger_velocity_events()
 
-        self.commit_config_params()
+        # self.trigger_fate_events()
+
+        # self.set_main_scene()
+
+        # self.commit_config_params()
 
         # @todo remove
         # self.randomize_config_params()
 
-        self.lock.release()
+        # . self.lock.release()
 
     def randomize_config_params(self):
         """Randomize config params for testing"""

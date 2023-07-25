@@ -58,33 +58,36 @@ class App:
         self.light_flicker_controller = LightFlickerController(
             self.event_manager, self.simulation
         )
-        self.foley_controller = Audio_controller("foley")
-        self.music_controller = Audio_controller("music")
+        # self.foley_controller = Audio_controller("foley")
+        # self.music_controller = Audio_controller("music")
         self.quotes_controller = Audio_controller("quotes")
-        self.foley_controller.set_scene(self.scene)
-        self.music_controller.set_scene(self.scene)
+        # self.foley_controller.set_scene(self.scene)
+        # self.music_controller.set_scene(self.scene)
         control.init_uc_comms()
         # this must happen after the serial port is initialized
         self.flood_lights_controller = FloodLightsController(self.scene)
 
 
     def update(self, dt: float):
-        new_ctrl_data = control.rx_uc_packet()
-        received_data = False
-        while new_ctrl_data is not None:
-            received_data = True
-            btn_or_knob, ctrl_idx, ctrl_val = new_ctrl_data
-            if btn_or_knob == b'p': # for "potentiometer"
-                if ctrl_idx in uc_ctrl_idx_to_simulation_key:
-                    self.simulation.update_config(uc_ctrl_idx_to_simulation_key[ctrl_idx], ctrl_val)
-            elif btn_or_knob == b'b':
-                print("Received data", btn_or_knob, ctrl_idx, ctrl_val)
-                self.quotes_controller.trigger_one_shot(self.simulation.scene)
+        # try:
+        #     new_ctrl_data = control.rx_uc_packet()
+        #     received_data = False
+        #     while new_ctrl_data is not None:
+        #         received_data = True
+        #         btn_or_knob, ctrl_idx, ctrl_val = new_ctrl_data
+        #         if btn_or_knob == b'p': # for "potentiometer"
+        #             if ctrl_idx in uc_ctrl_idx_to_simulation_key:
+        #                 self.simulation.update_config(uc_ctrl_idx_to_simulation_key[ctrl_idx], ctrl_val)
+        #         elif btn_or_knob == b'b':
+        #             print("Received data", btn_or_knob, ctrl_idx, ctrl_val)
+        #             self.quotes_controller.trigger_one_shot(self.simulation.scene)
 
-            new_ctrl_data = control.rx_uc_packet()
+        #         new_ctrl_data = control.rx_uc_packet()
 
-        # if received_data:
-        #     self.simulation.print_config()
+        #     if received_data:
+        #         self.simulation.print_config()
+        # except Exception as e:
+        #     print(e)
 
         # update light flicker controller before because it checks if params have changed
         self.light_flicker_controller.update(dt)
@@ -102,8 +105,8 @@ class App:
             self.fg_controller.set_scene(self.scene)
             self.lights_controller.set_scene(self.scene)
             self.flood_lights_controller.set_scene(self.scene)
-            self.foley_controller.set_scene(self.scene)
-            self.music_controller.set_scene(self.scene)
+            # self.foley_controller.set_scene(self.scene)
+            # self.music_controller.set_scene(self.scene)
 
         # print(f"forest_health={self.simulation.forest_health.get_mean()}, scene={self.scene}, scene_intensity={self.simulation.scene_intensity}")
         
@@ -117,8 +120,8 @@ class App:
         self.fg_controller.update(dt, force=scene_changed)
         self.lights_controller.update(dt)
         self.flood_lights_controller.update(dt)
-        self.foley_controller.update(self.scene, self.simulation)
-        self.music_controller.update(self.scene, self.simulation)
+        # self.foley_controller.update(self.scene, self.simulation)
+        # self.music_controller.update(self.scene, self.simulation)
 
         # update the event manager last since the controllers may have added events
         self.event_manager.update(dt)

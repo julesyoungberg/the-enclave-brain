@@ -106,6 +106,7 @@ class Audio_controller:
         self.lock.acquire()
         for filename in self.audio_data:
             self.stop_audio(filename)
+        self.lock.release()
         
         subfolder_path = self.paths[new_scene]
         filenames = os.listdir(subfolder_path)
@@ -114,7 +115,6 @@ class Audio_controller:
         file_to_play = random.sample(filenames, 1)
         self.load_audio(file_to_play[0], subfolder_path + "/" + file_to_play[0])
         self.play_audio(file_to_play[0])
-        self.lock.release()
     
     def trigger_one_shot(self, scene):
         if len(self.streams) > 0:
@@ -129,7 +129,7 @@ class Audio_controller:
     # Scene param are from SCENES dict in scenes.py
     # Call this every 100ms or so. Longer intervals will leave more of a gap on sound fadeout/fadein
     def update(self, scene, simulation):
-        self.lock.acquire()
+        # self.lock.acquire()
         # Update FX
         knob_vals = self.get_effect_knob_vals(simulation)
         self.knob_val_to_effect(knob_vals)
@@ -168,7 +168,7 @@ class Audio_controller:
 
                 self.load_audio(newFile, subfolder_path + "/" + newFile)
                 self.play_audio(newFile)
-        self.lock.release()
+        # self.lock.release()
 
     def play_audio(self, filename, fade_time=FADE_TIME_s):
         # Fade in
